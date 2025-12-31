@@ -15,6 +15,39 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                        {{ __('Početna') }}
+                    </x-nav-link>
+
+                    @if(Auth::user()->role === 'kupac')
+                        <x-nav-link :href="route('user.orders')" :active="request()->routeIs('user.orders')">
+                            {{ __('Moje Narudžbine') }}
+                        </x-nav-link>
+                        <x-nav-link href="#"> {{ __('Korpa') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(Auth::user()->role === 'admin' || Auth::user()->role === 'zaposleni')
+                        <x-nav-link :href="route('proizvod.index')" :active="request()->routeIs('proizvod.index')">
+                            {{ __('Upravljanje Proizvodima') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('skladiste.index')" :active="request()->routeIs('skladiste.index')">
+                            {{ __('Skladišta') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('resurs.index')" :active="request()->routeIs('resurs.index')">
+                            {{ __('Resursi') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.orders')" :active="request()->routeIs('admin.orders')">
+                            {{ __('Sve Narudžbine') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(Auth::user()->role === 'admin')
+                        <x-nav-link :href="route('admin.finansije')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold">
+                            {{ __('Finansije') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 

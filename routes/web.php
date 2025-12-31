@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProizvodController;
+use App\Http\Controllers\SkladisteController;
+use App\Http\Controllers\ResursController;
+use App\Http\Controllers\NarudzbinaController;
+use App\Http\Controllers\FinansijeController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -19,11 +21,28 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
+// javne rute
+Route::get('/', [ProizvodController::class, 'pocetna'])->name('home');
 
-Route::resource('proizvods', App\Http\Controllers\ProizvodController::class);
+// kupac rute
+Route::middleware(['auth', 'role:kupac'])->group(function () {
+    Route::get('/moje-narudzbine', [NarudzbinaController::class, 'index'])->name('user.orders');
+    // Ostale rute za korpu i sl.
+});
 
-Route::resource('skladistes', App\Http\Controllers\SkladisteController::class);
+// rute za radnike (zaposleni i admin)
+Route::middleware(['auth', 'role:admin,zaposleni'])->group(function() {
+    // upravljanje
+    Route::resource('proizvod', ProizvodController::class);
+    Route::resource('skladiste', SkladisteController::class);
+    Route::resource('resurs', ResursController::class);
+    
+    // pregled narudzbina
+    Route::get('/upravljanje-narudzbinama', [NarudzbinaController::class, 'index'])->name('admin.orders');
+});
 
-Route::resource('resurs', App\Http\Controllers\ResursController::class);
-
-Route::resource('narudzbinas', App\Http\Controllers\NarudzbinaController::class);
+// samo admin rute
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/finansije', [FinansijeController::class, 'index'])->name('admin.finansije');
+    Route::get('/finansije/izvestaj', [FinansijeController::class, 'generate'])->name('admin.izvestaj');
+});

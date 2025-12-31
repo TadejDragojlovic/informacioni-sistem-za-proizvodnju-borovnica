@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProizvodStoreRequest;
-use App\Http\Requests\ProizvodUpdateRequest;
 use App\Models\Proizvod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +9,14 @@ use Illuminate\View\View;
 
 class ProizvodController extends Controller
 {
-    public function index(Request $request): Response
+    public function pocetna(): View
+    {
+        $proizvodi = Proizvod::all();
+
+        return view('welcome', compact('proizvodi'));
+    }
+
+    public function index(Request $request): View
     {
         $proizvods = Proizvod::all();
 
@@ -25,7 +30,7 @@ class ProizvodController extends Controller
         return view('proizvod.create');
     }
 
-    public function store(ProizvodStoreRequest $request): Response
+    public function store(Request $request): Response
     {
         $proizvod = Proizvod::create($request->validated());
 
@@ -48,7 +53,7 @@ class ProizvodController extends Controller
         ]);
     }
 
-    public function update(ProizvodUpdateRequest $request, Proizvod $proizvod): Response
+    public function update(Request $request, Proizvod $proizvod): Response
     {
         $proizvod->update($request->validated());
 

@@ -28,6 +28,22 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
+        // kreacija naloga za zaposlenog
+        User::factory()->create([
+            'name' => 'Zaposleni 1',
+            'email' => 'zaposleni@borovnica.com',
+            'password' => bcrypt('zaposleni'),
+            'role' => 'zaposleni',
+        ]);
+
+        // kreacija naloga za kupca
+        User::factory()->create([
+            'name' => 'Kupac 1',
+            'email' => 'kupac@kupac.com',
+            'password' => bcrypt('kupac'),
+            'role' => 'kupac',
+        ]);
+
         // kreiranje laznih podataka za testiranje
         Skladiste::factory(3)->create()->each(function ($skladiste) {
             Proizvod::factory(5)->create([

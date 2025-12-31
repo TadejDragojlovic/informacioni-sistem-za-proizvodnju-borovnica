@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\NarudzbinaStoreRequest;
-use App\Http\Requests\NarudzbinaUpdateRequest;
 use App\Models\Narudzbina;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +9,7 @@ use Illuminate\View\View;
 
 class NarudzbinaController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): View
     {
         $narudzbinas = Narudzbina::all();
 
@@ -25,7 +23,7 @@ class NarudzbinaController extends Controller
         return view('narudzbina.create');
     }
 
-    public function store(NarudzbinaStoreRequest $request): Response
+    public function store(Request $request): Response
     {
         $narudzbina = Narudzbina::create($request->validated());
 
@@ -48,7 +46,7 @@ class NarudzbinaController extends Controller
         ]);
     }
 
-    public function update(NarudzbinaUpdateRequest $request, Narudzbina $narudzbina): Response
+    public function update(Request $request, Narudzbina $narudzbina): Response
     {
         $narudzbina->update($request->validated());
 

@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\SkladisteStoreRequest;
-use App\Http\Requests\SkladisteUpdateRequest;
 use App\Models\Skladiste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +9,7 @@ use Illuminate\View\View;
 
 class SkladisteController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): View
     {
         $skladistes = Skladiste::all();
 
@@ -25,7 +23,7 @@ class SkladisteController extends Controller
         return view('skladiste.create');
     }
 
-    public function store(SkladisteStoreRequest $request): Response
+    public function store(Request $request): Response
     {
         $skladiste = Skladiste::create($request->validated());
 
@@ -48,7 +46,7 @@ class SkladisteController extends Controller
         ]);
     }
 
-    public function update(SkladisteUpdateRequest $request, Skladiste $skladiste): Response
+    public function update(Request $request, Skladiste $skladiste): Response
     {
         $skladiste->update($request->validated());
 

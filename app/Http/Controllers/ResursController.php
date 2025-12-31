@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ResurStoreRequest;
-use App\Http\Requests\ResurUpdateRequest;
 use App\Models\Resurs;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,55 +9,55 @@ use Illuminate\View\View;
 
 class ResursController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): View
     {
-        $resurs = Resur::all();
+        $resursi = Resurs::all();
 
-        return view('resur.index', [
-            'resurs' => $resurs,
+        return view('resurs.index', [
+            'resursi' => $resursi,
         ]);
     }
 
     public function create(Request $request): Response
     {
-        return view('resur.create');
+        return view('resurs.create');
     }
 
-    public function store(ResurStoreRequest $request): Response
+    public function store(Request $request): Response
     {
-        $resur = Resur::create($request->validated());
+        $resurs = Resurs::create($request->validated());
 
-        $request->session()->flash('resur.id', $resur->id);
+        $request->session()->flash('resurs.id', $resurs->id);
 
         return redirect()->route('resurs.index');
     }
 
-    public function show(Request $request, Resur $resur): Response
+    public function show(Request $request, Resurs $resurs): Response
     {
-        return view('resur.show', [
-            'resur' => $resur,
+        return view('resurs.show', [
+            'resurs' => $resurs,
         ]);
     }
 
-    public function edit(Request $request, Resur $resur): Response
+    public function edit(Request $request, Resurs $resurs): Response
     {
-        return view('resur.edit', [
-            'resur' => $resur,
+        return view('resurs.edit', [
+            'resurs' => $resurs,
         ]);
     }
 
-    public function update(ResurUpdateRequest $request, Resur $resur): Response
+    public function update(Request $request, Resurs $resurs): Response
     {
-        $resur->update($request->validated());
+        $resurs->update($request->validated());
 
-        $request->session()->flash('resur.id', $resur->id);
+        $request->session()->flash('resurs.id', $resurs->id);
 
         return redirect()->route('resurs.index');
     }
 
-    public function destroy(Request $request, Resur $resur): Response
+    public function destroy(Request $request, Resurs $resurs): Response
     {
-        $resur->delete();
+        $resurs->delete();
 
         return redirect()->route('resurs.index');
     }
