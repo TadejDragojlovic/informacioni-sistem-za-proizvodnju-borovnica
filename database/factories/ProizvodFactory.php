@@ -13,9 +13,9 @@ class ProizvodFactory extends Factory
     public function definition(): array
     {
         return [
-            'naziv' => fake()->regexify('[A-Za-z0-9]{100}'),
+            'naziv' => fake()->regexify('[A-Za-z0-9]{50}'),
             'opis' => fake()->text(),
-            'kolicina' => fake()->numberBetween(-10000, 10000),
+            'kolicina' => fake()->numberBetween(0, 10000),
             'cena' => fake()->randomFloat(2, 0, 99999999.99),
             'skladiste_id' => Skladiste::factory(),
         ];

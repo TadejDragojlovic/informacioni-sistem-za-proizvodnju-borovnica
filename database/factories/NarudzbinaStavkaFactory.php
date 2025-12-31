@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\;
+use App\Models\Proizvod;
 use App\Models\Narudzbina;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -15,8 +15,8 @@ class NarudzbinaStavkaFactory extends Factory
     {
         return [
             'narudzbina_id' => Narudzbina::factory(),
-            'proizvod_id' => ::factory(),
-            'kolicina' => fake()->numberBetween(-10000, 10000),
+            'proizvod_id' => Proizvod::factory(),
+            'kolicina' => fake()->numberBetween(1, 20),
         ];
     }
 }

@@ -14,8 +14,8 @@ class ResursFactory extends Factory
     {
         return [
             'naziv' => fake()->word(),
-            'kolicina' => fake()->randomFloat(2, 0, 99999999.99),
-            'trosak' => fake()->randomFloat(2, 0, 9999999999.99),
+            'kolicina' => fake()->randomFloat(2, 0, 999),
+            'trosak' => fake()->randomFloat(2, 0, 999999.99),
             'proizvod_id' => Proizvod::factory(),
         ];
     }
