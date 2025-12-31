@@ -1,0 +1,52 @@
+models:
+  Proizvod:
+    naziv: string:100
+    opis: text nullable
+    kolicina: integer
+    cena: decimal:10,2
+    skladiste_id: id
+    relationships:
+      belongsTo: Skladiste
+      hasMany: NarudzbinaStavka
+
+  Skladiste:
+    lokacija: string
+    kapacitet: integer
+    temperatura: decimal:5,2
+    trosak: decimal:12,2
+    relationships:
+      hasMany: Proizvod
+
+  Resurs:
+    naziv: string
+    kolicina: decimal:10,2
+    trosak: decimal:12,2
+    proizvod_id: id
+    relationships:
+      belongsTo: Proizvod
+
+  Narudzbina:
+    datum_narudzbine: date
+    ukupna_cena: decimal:12,2
+    status: enum:kreirana,potvrdjena,u_obradi,otpremljena,isporucena,otkazana,vracena
+    user_id: id
+    relationships:
+      belongsTo: User
+      hasMany: NarudzbinaStavka
+
+  NarudzbinaStavka:
+    narudzbina_id: id
+    proizvod_id: id
+    kolicina: integer
+    relationships:
+      belongsTo: Narudzbina, Proizvod
+
+controllers:
+  Proizvod:
+    resource: web
+  Skladiste:
+    resource: web
+  Resurs:
+    resource: web
+  Narudzbina:
+    resource: web
