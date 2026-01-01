@@ -54,10 +54,12 @@ class FinansijeController extends Controller
 
         // trosak resursa
         $listaResursa = Resurs::whereIn('proizvod_id', $prodatiProizvodiIds)->get();
-        $trosakResursa = $listaResursa->sum('trosak');
+        $ukupniTrosakResursa = $listaResursa->sum(function($resurs) {
+            return $resurs->trosak * $resurs->kolicina;
+        });
         
         // izracunavanje
-        $ukupniRashod = $trosakSkladista + $trosakResursa;
+        $ukupniRashod = $trosakSkladista + $ukupniTrosakResursa;
         $netoDobit = $ukupniPrihod - $ukupniRashod;
 
         return view('admin.finansije.prikaz', compact(
