@@ -1,0 +1,63 @@
+name: Automatsko testiranje Laravel aplikacije
+
+on: 
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+    
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout koda
+        uses: actions/checkout@v4
+
+
+      - name: Podesavanje PHP-a 
+        uses: shivammathur/setup-php@v2
+        with: 
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, pdo, json, sqlite3, curl
+          coverage: none
+
+
+      - name: Composer zavisnosti
+        uses: actions/cache@v4
+        with: 
+              path: vendor
+              key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+              restore-keys: |
+               ${{ runner.os }}-composer-
+
+      - name: Instalacija composer paketa
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Kopiranje .env.example u .env fajl
+        run: cp .env.example .env
+
+      - name: Generisanje aplikacijskog kljuca
+        run: php artisan key:generate
+
+      - name: Create Database
+        run: |
+          touch database/database.sqlite
+
+      # migracije
+      - name: Execute Migrations
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan migrate --force
+      
+      - name: Upotreba PINT za pravilnu stilizaciju koda
+        run: ./vendor/bin/pint --test
+
+      - name: Pokretanje testova
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan test
