@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Proizvod;
+use App\Models\Skladiste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,18 +26,24 @@ class ProizvodController extends Controller
         ]);
     }
 
-    public function create(Request $request): Response
+    public function create(Request $request): View
     {
-        return view('proizvod.create');
+        $skladista = Skladiste::all();
+        return view('proizvod.create', compact('skladista'));
     }
 
-    public function store(Request $request): Response
+    public function store(Request $request): RedirectResponse
     {
-        $proizvod = Proizvod::create($request->validated());
+        $valid = $request->validate([
+            'naziv' => 'required|string|max:255',
+            'opis' => 'nullable|string',
+            'kolicina' => 'required|numeric|min:0',
+            'cena' => 'required|numeric|min:0',
+            'skladiste_id' => 'required|exists:skladistes,id',
+        ]);
 
-        $request->session()->flash('proizvod.id', $proizvod->id);
-
-        return redirect()->route('proizvods.index');
+        Proizvod::create($valid);
+        return redirect()->route('proizvod.index')->with('success', 'Proizvod dodat.');
     }
 
     public function show(Request $request, Proizvod $proizvod): Response
@@ -46,26 +53,32 @@ class ProizvodController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Proizvod $proizvod): Response
+    public function edit(Request $request, $id): View
     {
-        return view('proizvod.edit', [
-            'proizvod' => $proizvod,
+        $proizvod = Proizvod::findOrFail($id);
+        $skladista = Skladiste::all();
+        return view('proizvod.edit', compact('proizvod', 'skladista'));
+    }
+
+    public function update(Request $request, $id): RedirectResponse
+    {
+        $valid = $request->validate([
+            'naziv' => 'required|string|max:255',
+            'opis' => 'nullable|string',
+            'kolicina' => 'required|numeric|min:0',
+            'cena' => 'required|numeric|min:0',
+            'skladiste_id' => 'required|exists:skladistes,id',
         ]);
+
+        $proizvod = Proizvod::findOrFail($id);
+        $proizvod->update($valid);
+        return redirect()->route('proizvod.index')->with('success', 'Proizvod ažuriran.');
     }
 
-    public function update(Request $request, Proizvod $proizvod): Response
-    {
-        $proizvod->update($request->validated());
-
-        $request->session()->flash('proizvod.id', $proizvod->id);
-
-        return redirect()->route('proizvods.index');
-    }
-
-    public function destroy(Request $request, Proizvod $proizvod): Response
+    public function destroy(Request $request, Proizvod $proizvod): RedirectResponse
     {
         $proizvod->delete();
 
-        return redirect()->route('proizvods.index');
+        return redirect()->route('proizvod.index');
     }
 }

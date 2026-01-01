@@ -14,22 +14,22 @@
                             <tr class="border-b border-borovnica-light text-left italic">
                                 <th class="pb-2">Naziv</th>
                                 <th class="pb-2">Cena</th>
-                                <th class="pb-2">Količina</th>
-                                <th class="pb-2 text-center">Dodaj u korpu</th>
+                                <th class="pb-2 text-center">Količina</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-borovnica-light/30">
-                            @foreach($proizvodi->take(3) as $proizvod) {{-- Uzimamo npr. prva 3 za akciju --}}
+                            @foreach($proizvodi as $proizvod)
                             <tr>
                                 <td class="py-4">{{ $proizvod->naziv }}</td>
                                 <td class="py-4 font-semibold text-borovnica-dark">{{ $proizvod->cena }}rsd</td>
-                                <td class="py-4">
-                                    <input type="number" class="w-16 rounded border-none text-black p-1" value="1">
-                                </td>
                                 <td class="py-4 text-center">
-                                    <button class="bg-borovnica-dark hover:bg-black text-white px-6 py-2 rounded-md transition text-sm">
-                                        Dodaj
-                                    </button>
+                                    <form action="{{ route('korpa.dodaj', $proizvod->id) }}" method="POST">
+                                        @csrf
+                                        <input type="number" name="kolicina" value="1" min="1" class="w-16 bg-white/50 border-borovnica-dark/20 rounded py-1 text-center">
+                                        <button type="submit" class="bg-borovnica-dark hover:bg-black text-white px-6 py-2 rounded-md transition text-sm">
+                                            Dodaj
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @endforeach
@@ -50,7 +50,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-borovnica-light/30">
-                            @foreach($proizvodi->shuffle()->take(2) as $proizvod) {{-- Nasumično za demo --}}
+                            @foreach($proizvodi->shuffle()->take(2) as $proizvod)
                             <tr>
                                 <td class="py-4">{{ $proizvod->naziv }}</td>
                                 <td class="py-4 text-sm text-gray-200">{{ $proizvod->opis }}</td>

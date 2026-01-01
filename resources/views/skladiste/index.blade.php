@@ -24,6 +24,7 @@
                             <th class="py-3 px-2">Naziv lokacije</th>
                             <th class="py-3 px-2">Kapacitet</th>
                             <th class="py-3 px-2">Temperatura (C)</th>
+                            <th class="py-3 px-2">Dnevni trošak</th>
                             <th class="py-3 px-2 text-center">Akcije</th>
                         </tr>
                     </thead>
@@ -33,10 +34,21 @@
                             <td class="py-4 px-2">{{ $s->lokacija }}</td>
                             <td class="py-4 px-2 italic">{{ $s->kapacitet }} kg</td>
                             <td class="py-4 px-2">{{ $s->temperatura }}</td>
+                            <td class="py-4 px-2">{{ $s->trosak }}</td>
                             <td class="py-4 px-2 text-center">
                                 <div class="flex flex-col space-y-1 items-center">
-                                    <button class="w-24 bg-borovnica-accent text-white text-xs py-1 px-2 rounded hover:bg-borovnica-dark transition uppercase">Izmeni</button>
-                                    <button class="w-24 bg-borovnica-dark text-white text-xs py-1 px-2 rounded hover:bg-black transition uppercase">Obriši</button>
+                                    <a href="{{ route('skladiste.edit', $s->id) }}" 
+                                    class="w-24 bg-borovnica-accent text-white text-[10px] py-1 px-2 rounded hover:bg-borovnica-dark transition uppercase tracking-tighter text-center shadow-sm">
+                                        Izmeni
+                                    </a>
+
+                                    <form action="{{ route('skladiste.destroy', ['skladiste' => $s]) }}" method="POST" class="w-24">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-full bg-red-600 text-white text-[10px] py-1 px-2 rounded hover:bg-red-800 transition uppercase tracking-tighter shadow-sm">
+                                            Otkaži
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -46,7 +58,7 @@
             </div>
 
             <div class="mt-8 flex justify-center">
-                <a href="#" class="bg-borovnica-dark text-white px-10 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-borovnica-accent transition shadow-lg">
+                <a href="{{ route('skladiste.create') }}" class="bg-borovnica-dark text-white px-10 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-borovnica-accent transition shadow-lg">
                     + Dodaj novo skladište
                 </a>
             </div>

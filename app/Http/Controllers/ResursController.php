@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Resurs;
+use App\Models\Proizvod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,17 +19,21 @@ class ResursController extends Controller
         ]);
     }
 
-    public function create(Request $request): Response
+    public function create(Request $request): View
     {
-        return view('resurs.create');
+        $proizvodi = Proizvod::all();
+        return view('resurs.create', compact('proizvodi'));
     }
 
-    public function store(Request $request): Response
-    {
-        $resurs = Resurs::create($request->validated());
-
-        $request->session()->flash('resurs.id', $resurs->id);
-
+    public function store(Request $request): RedirectResponse {
+        $valid = $request->validate([
+            'naziv' => 'required|string',
+            'kolicina' => 'required|numeric',
+            'trosak' => 'required|numeric',
+            'proizvod_id' => 'required|exists:proizvods,id' 
+        ]);
+        
+        Resurs::create($valid);
         return redirect()->route('resurs.index');
     }
 
@@ -39,25 +44,29 @@ class ResursController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Resurs $resurs): Response
+    public function edit(Request $request, Resurs $resur): View
     {
-        return view('resurs.edit', [
-            'resurs' => $resurs,
+        $proizvodi = Proizvod::all();
+        return view('resurs.edit', compact('resur', 'proizvodi'));
+    }
+
+    public function update(Request $request, $id): RedirectResponse
+    {
+        $valid = $request->validate([
+            'naziv' => 'required|string',
+            'kolicina' => 'required|numeric',
+            'trosak' => 'required|numeric',
+            'proizvod_id' => 'required|exists:proizvods,id' 
         ]);
+
+        $resurs = Resurs::findOrFail($id);
+        $resurs->update($valid);
+        return redirect()->route('resurs.index')->with('success', 'Resurs uspesno izmenjen.');
     }
 
-    public function update(Request $request, Resurs $resurs): Response
+    public function destroy(Request $request, Resurs $resur): RedirectResponse
     {
-        $resurs->update($request->validated());
-
-        $request->session()->flash('resurs.id', $resurs->id);
-
-        return redirect()->route('resurs.index');
-    }
-
-    public function destroy(Request $request, Resurs $resurs): Response
-    {
-        $resurs->delete();
+        $resur->delete();
 
         return redirect()->route('resurs.index');
     }

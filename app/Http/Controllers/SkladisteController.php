@@ -18,18 +18,22 @@ class SkladisteController extends Controller
         ]);
     }
 
-    public function create(Request $request): Response
+    public function create(Request $request): View
     {
         return view('skladiste.create');
     }
 
-    public function store(Request $request): Response
+    public function store(Request $request): RedirectResponse
     {
-        $skladiste = Skladiste::create($request->validated());
-
-        $request->session()->flash('skladiste.id', $skladiste->id);
-
-        return redirect()->route('skladistes.index');
+        $valid = $request->validate([
+            'lokacija' => 'required|string',
+            'kapacitet' => 'required|numeric',
+            'temperatura' => 'required|numeric',
+            'trosak' => 'required|numeric'
+        ]);
+        
+        Skladiste::create($valid);
+        return redirect()->route('skladiste.index')->with('success', 'Skladište kreirano.');
     }
 
     public function show(Request $request, Skladiste $skladiste): Response
@@ -39,26 +43,30 @@ class SkladisteController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Skladiste $skladiste): Response
+    public function edit(Request $request, Skladiste $skladiste): View
     {
         return view('skladiste.edit', [
             'skladiste' => $skladiste,
         ]);
     }
 
-    public function update(Request $request, Skladiste $skladiste): Response
+    public function update(Request $request, $id): RedirectResponse
     {
-        $skladiste->update($request->validated());
-
-        $request->session()->flash('skladiste.id', $skladiste->id);
-
-        return redirect()->route('skladistes.index');
+        $valid = $request->validate([
+            'lokacija' => 'required|string',
+            'kapacitet' => 'required|numeric',
+            'temperatura' => 'required|numeric',
+            'trosak' => 'required|numeric'
+        ]);
+        
+        Skladiste::findOrFail($id)->update($valid);
+        return redirect()->route('skladiste.index')->with('success', 'Skladište ažurirano.');
     }
 
-    public function destroy(Request $request, Skladiste $skladiste): Response
+    public function destroy(Request $request, Skladiste $skladiste): RedirectResponse
     {
         $skladiste->delete();
 
-        return redirect()->route('skladistes.index');
+        return redirect()->route('skladiste.index');
     }
 }

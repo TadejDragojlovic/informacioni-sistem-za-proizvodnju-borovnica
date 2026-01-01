@@ -2,12 +2,13 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\ProizvodController;
 use App\Http\Controllers\SkladisteController;
 use App\Http\Controllers\ResursController;
 use App\Http\Controllers\NarudzbinaController;
 use App\Http\Controllers\FinansijeController;
-
+use App\Http\Controllers\KorpaController;
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -26,8 +27,13 @@ Route::get('/', [ProizvodController::class, 'pocetna'])->name('home');
 
 // kupac rute
 Route::middleware(['auth', 'role:kupac'])->group(function () {
-    Route::get('/moje-narudzbine', [NarudzbinaController::class, 'index'])->name('user.orders');
-    // Ostale rute za korpu i sl.
+    Route::get('/moje-narudzbine', [NarudzbinaController::class, 'mojeNarudzbine'])->name('user.orders');
+    Route::post('/narudzbine/potvrdi', [NarudzbinaController::class, 'potvrdi'])->name('narudzbine.potvrdi');
+
+    Route::get('/korpa', [KorpaController::class, 'index'])->name('korpa.index');
+    Route::post('/korpa/dodaj/{id}', [KorpaController::class, 'dodaj'])->name('korpa.dodaj');
+    Route::post('/korpa/azuriraj/{id}', [KorpaController::class, 'azuriraj'])->name('korpa.azuriraj');
+    Route::post('/korpa/obrisi/{id}', [KorpaController::class, 'obrisi'])->name('korpa.obrisi');
 });
 
 // rute za radnike (zaposleni i admin)

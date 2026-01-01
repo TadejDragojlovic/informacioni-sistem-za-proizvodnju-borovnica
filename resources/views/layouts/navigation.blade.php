@@ -31,7 +31,7 @@
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Moje Narudžbine') }}
                             </x-nav-link>
-                            <x-nav-link href="#"
+                            <x-nav-link :href="route('korpa.index')" :active="request()->routeIs('korpa.index')"
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Korpa') }}
                             </x-nav-link>
