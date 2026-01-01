@@ -32,5 +32,20 @@
                 {{ $slot }}
             </main>
         </div>
+        @if(session('success'))
+        <div id="toast" class="fixed bottom-5 right-5 z-50 animate-bounce">
+            <div class="bg-borovnica-dark text-white px-6 py-3 rounded-sm shadow-2xl border-b-4 border-borovnica-accent font-bold italic">
+                🫐 {{ session('success') }}
+            </div>
+        </div>
+
+        <script>
+            // Automatski ukloni poruku nakon 3 sekunde
+            setTimeout(() => {
+                const toast = document.getElementById('toast');
+                if(toast) toast.style.display = 'none';
+            }, 3000);
+        </script>
+        @endif
     </body>
 </html>
