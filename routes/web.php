@@ -36,9 +36,7 @@ Route::middleware(['auth', 'role:admin,zaposleni'])->group(function() {
     Route::resource('proizvod', ProizvodController::class);
     Route::resource('skladiste', SkladisteController::class);
     Route::resource('resurs', ResursController::class);
-    
-    // pregled narudzbina
-    Route::get('/upravljanje-narudzbinama', [NarudzbinaController::class, 'index'])->name('admin.orders');
+    Route::resource('narudzbine', NarudzbinaController::class);
 });
 
 // samo admin rute

@@ -47,4 +47,15 @@ class Narudzbina extends Model
     {
         return $this->hasMany(NarudzbinaStavka::class);
     }
+
+    public function stavke()
+    {
+        return $this->hasMany(NarudzbinaStavka::class, 'narudzbina_id');
+    }
+
+    public function proizvodi()
+    {
+        return $this->belongsToMany(Proizvod::class, 'narudzbina_stavkas', 'narudzbina_id', 'proizvod_id')
+                ->withPivot('kolicina', 'cena');
+    }
 }

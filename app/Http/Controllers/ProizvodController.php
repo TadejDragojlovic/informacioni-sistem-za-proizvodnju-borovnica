@@ -13,7 +13,7 @@ class ProizvodController extends Controller
     {
         $proizvodi = Proizvod::all();
 
-        return view('welcome', compact('proizvodi'));
+        return view('pocetna', compact('proizvodi'));
     }
 
     public function index(Request $request): View
@@ -21,7 +21,7 @@ class ProizvodController extends Controller
         $proizvods = Proizvod::all();
 
         return view('proizvod.index', [
-            'proizvods' => $proizvods,
+            'proizvodi' => $proizvods,
         ]);
     }
 

@@ -11,6 +11,13 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+                'borovnica-dark': '#4a3a4d',
+                'borovnica-light': '#a57da0',
+                'borovnica-accent': '#7b5a7a',
+                'borovnica-table': '#d8b9c3',
+                'borovnica-soft': '#f3e8eb',
+            },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },

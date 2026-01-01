@@ -42,6 +42,6 @@ class NarudzbinaStavka extends Model
 
     public function proizvod(): BelongsTo
     {
-        return $this->belongsTo(Proizvod::class);
+        return $this->belongsTo(Proizvod::class, 'proizvod_id');
     }
 }

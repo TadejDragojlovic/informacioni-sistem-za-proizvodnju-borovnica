@@ -14,7 +14,7 @@ class NarudzbinaController extends Controller
         $narudzbinas = Narudzbina::all();
 
         return view('narudzbina.index', [
-            'narudzbinas' => $narudzbinas,
+            'narudzbine' => $narudzbinas,
         ]);
     }
 
@@ -32,33 +32,41 @@ class NarudzbinaController extends Controller
         return redirect()->route('narudzbinas.index');
     }
 
-    public function show(Request $request, Narudzbina $narudzbina): Response
+    public function show($id): View
     {
-        return view('narudzbina.show', [
-            'narudzbina' => $narudzbina,
-        ]);
+        $narudzbina = Narudzbina::with(['user', 'stavke.proizvod'])->findOrFail($id);
+
+        return view('narudzbina.show', compact('narudzbina'));
     }
 
-    public function edit(Request $request, Narudzbina $narudzbina): Response
+    public function edit(Request $request, $id): View
     {
+        $narudzbina = Narudzbina::findOrFail($id);
+        $statusi = ['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena'];
+        
         return view('narudzbina.edit', [
             'narudzbina' => $narudzbina,
+            'statusi' => $statusi
         ]);
     }
 
-    public function update(Request $request, Narudzbina $narudzbina): Response
+    public function update(Request $request, $id): RedirectResponse
     {
-        $narudzbina->update($request->validated());
+        $valid = $request->validate([
+            'status' => 'required|string'
+        ]);
 
-        $request->session()->flash('narudzbina.id', $narudzbina->id);
+        $narudzbina = Narudzbina::findOrFail($id);
+        $narudzbina->update($valid);
 
-        return redirect()->route('narudzbinas.index');
+        return redirect()->route('narudzbine.index')->with('success', 'Status uspesno izmenjen.');
     }
 
-    public function destroy(Request $request, Narudzbina $narudzbina): Response
+    public function destroy($id): RedirectResponse
     {
+        $narudzbina = Narudzbina::findOrFail($id);
         $narudzbina->delete();
 
-        return redirect()->route('narudzbinas.index');
+        return redirect()->route('narudzbine.index');
     }
 }

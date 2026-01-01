@@ -14,7 +14,7 @@ class SkladisteController extends Controller
         $skladistes = Skladiste::all();
 
         return view('skladiste.index', [
-            'skladistes' => $skladistes,
+            'skladista' => $skladistes,
         ]);
     }
 
