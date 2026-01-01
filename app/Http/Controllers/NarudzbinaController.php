@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Narudzbina;
+use App\Models\Proizvod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -93,7 +94,6 @@ class NarudzbinaController extends Controller
             'datum_narudzbine' => Carbon::today()->toDateString(),
             'user_id' => auth()->id(),
             'status' => 'kreirana',
-            'ukupna_cena' => array_sum(array_map(fn($item) => $item['cena'] * $item['kolicina'], $korpa)),
         ]);
 
         // stavka narudzbine
@@ -102,6 +102,12 @@ class NarudzbinaController extends Controller
                 'proizvod_id' => $proizvod_id,
                 'kolicina'    => $detalji['kolicina'],
             ]);
+
+            // skidanje zaliha
+            $proizvod = Proizvod::find($proizvod_id);
+            if ($proizvod) {
+                $proizvod->decrement('kolicina', $detalji['kolicina']);
+            }
         }
 
         session()->forget('korpa');

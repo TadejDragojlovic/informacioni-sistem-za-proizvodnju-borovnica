@@ -46,7 +46,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="w-full bg-red-600 text-white text-[10px] py-1 px-2 rounded hover:bg-red-800 transition uppercase tracking-tighter shadow-sm">
-                                            Otkaži
+                                            Obriši
                                         </button>
                                     </form>
                                 </div>

@@ -18,7 +18,6 @@ class Narudzbina extends Model
      */
     protected $fillable = [
         'datum_narudzbine',
-        'ukupna_cena',
         'status',
         'user_id',
     ];

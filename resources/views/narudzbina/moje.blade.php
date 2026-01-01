@@ -21,7 +21,7 @@
                             <tr class="border-b border-borovnica-dark/5 hover:bg-white/20 transition">
                                 <td class="px-6 py-4 font-bold">#{{ $n->id }}</td>
                                 <td class="px-6 py-4">{{ $n->created_at->format('d.m.Y H:i') }}</td>
-                                <td class="px-6 py-4 font-bold">{{ number_format($n->ukupna_cena, 2) }} RSD</td>
+                                <td class="px-6 py-4 font-bold">{{ number_format($n->stavke->sum(fn($s) => $s->kolicina * $s->proizvod->cena), 2) }} RSD</td>
                                 <td class="px-6 py-4 text-center">
                                     <span class="px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter
                                         @if($n->status == 'isporucena') bg-green-200 text-green-800 

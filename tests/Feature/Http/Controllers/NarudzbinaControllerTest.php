@@ -55,20 +55,17 @@ final class NarudzbinaControllerTest extends TestCase
     public function store_saves_and_redirects(): void
     {
         $datum_narudzbine = Carbon::parse(fake()->date());
-        $ukupna_cena = fake()->randomFloat(/** decimal_attributes **/);
         $status = fake()->randomElement(/** enum_attributes **/);
         $user = User::factory()->create();
 
         $response = $this->post(route('narudzbinas.store'), [
             'datum_narudzbine' => $datum_narudzbine->toDateString(),
-            'ukupna_cena' => $ukupna_cena,
             'status' => $status,
             'user_id' => $user->id,
         ]);
 
         $narudzbinas = Narudzbina::query()
             ->where('datum_narudzbine', $datum_narudzbine)
-            ->where('ukupna_cena', $ukupna_cena)
             ->where('status', $status)
             ->where('user_id', $user->id)
             ->get();
@@ -121,13 +118,11 @@ final class NarudzbinaControllerTest extends TestCase
     {
         $narudzbina = Narudzbina::factory()->create();
         $datum_narudzbine = Carbon::parse(fake()->date());
-        $ukupna_cena = fake()->randomFloat(/** decimal_attributes **/);
         $status = fake()->randomElement(/** enum_attributes **/);
         $user = User::factory()->create();
 
         $response = $this->put(route('narudzbinas.update', $narudzbina), [
             'datum_narudzbine' => $datum_narudzbine->toDateString(),
-            'ukupna_cena' => $ukupna_cena,
             'status' => $status,
             'user_id' => $user->id,
         ]);
@@ -138,7 +133,6 @@ final class NarudzbinaControllerTest extends TestCase
         $response->assertSessionHas('narudzbina.id', $narudzbina->id);
 
         $this->assertEquals($datum_narudzbine, $narudzbina->datum_narudzbine);
-        $this->assertEquals($ukupna_cena, $narudzbina->ukupna_cena);
         $this->assertEquals($status, $narudzbina->status);
         $this->assertEquals($user->id, $narudzbina->user_id);
     }

@@ -21,7 +21,7 @@ class NarudzbinaStoreRequest extends FormRequest
     {
         return [
             'datum_narudzbine' => ['required', 'date'],
-            'ukupna_cena' => ['required', 'numeric', 'between:-9999999999.99,9999999999.99'],
+            // 'ukupna_cena' => ['required', 'numeric', 'between:-9999999999.99,9999999999.99'],
             'status' => ['required', 'in:kreirana,potvrdjena,u_obradi,otpremljena,isporucena,otkazana,vracena'],
             'user_id' => ['required', 'integer', 'exists:Users,id'],
         ];

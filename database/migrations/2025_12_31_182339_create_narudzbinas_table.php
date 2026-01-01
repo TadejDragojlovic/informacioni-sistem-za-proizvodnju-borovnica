@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('narudzbinas', function (Blueprint $table) {
             $table->id();
             $table->date('datum_narudzbine');
-            $table->decimal('ukupna_cena', 12, 2);
             $table->enum('status', ["kreirana","potvrdjena","u_obradi","otpremljena","isporucena","otkazana","vracena"]);
             $table->foreignId('user_id');
             $table->timestamps();
