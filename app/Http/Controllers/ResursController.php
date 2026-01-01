@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Resurs;
 use App\Models\Proizvod;
+use App\Models\Resurs;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,18 +22,21 @@ class ResursController extends Controller
     public function create(Request $request): View
     {
         $proizvodi = Proizvod::all();
+
         return view('resurs.create', compact('proizvodi'));
     }
 
-    public function store(Request $request): RedirectResponse {
+    public function store(Request $request): RedirectResponse
+    {
         $valid = $request->validate([
             'naziv' => 'required|string',
             'kolicina' => 'required|numeric',
             'trosak' => 'required|numeric',
-            'proizvod_id' => 'required|exists:proizvods,id' 
+            'proizvod_id' => 'required|exists:proizvods,id',
         ]);
-        
+
         Resurs::create($valid);
+
         return redirect()->route('resurs.index');
     }
 
@@ -47,6 +50,7 @@ class ResursController extends Controller
     public function edit(Request $request, Resurs $resur): View
     {
         $proizvodi = Proizvod::all();
+
         return view('resurs.edit', compact('resur', 'proizvodi'));
     }
 
@@ -56,11 +60,12 @@ class ResursController extends Controller
             'naziv' => 'required|string',
             'kolicina' => 'required|numeric',
             'trosak' => 'required|numeric',
-            'proizvod_id' => 'required|exists:proizvods,id' 
+            'proizvod_id' => 'required|exists:proizvods,id',
         ]);
 
         $resurs = Resurs::findOrFail($id);
         $resurs->update($valid);
+
         return redirect()->route('resurs.index')->with('success', 'Resurs uspesno izmenjen.');
     }
 

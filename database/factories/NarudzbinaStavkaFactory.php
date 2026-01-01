@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Proizvod;
 use App\Models\Narudzbina;
+use App\Models\Proizvod;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class NarudzbinaStavkaFactory extends Factory

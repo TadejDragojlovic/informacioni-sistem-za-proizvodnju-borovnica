@@ -6,9 +6,8 @@ use App\Models\Narudzbina;
 use App\Models\Proizvod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-
 use Illuminate\Support\Carbon;
+use Illuminate\View\View;
 
 class NarudzbinaController extends Controller
 {
@@ -46,17 +45,17 @@ class NarudzbinaController extends Controller
     {
         $narudzbina = Narudzbina::findOrFail($id);
         $statusi = ['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena'];
-        
+
         return view('narudzbina.edit', [
             'narudzbina' => $narudzbina,
-            'statusi' => $statusi
+            'statusi' => $statusi,
         ]);
     }
 
     public function update(Request $request, $id): RedirectResponse
     {
         $valid = $request->validate([
-            'status' => 'required|string'
+            'status' => 'required|string',
         ]);
 
         $narudzbina = Narudzbina::findOrFail($id);
@@ -76,8 +75,8 @@ class NarudzbinaController extends Controller
     public function mojeNarudzbine()
     {
         $narudzbine = Narudzbina::where('user_id', auth()->id())
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('narudzbina.moje', compact('narudzbine'));
     }
@@ -87,7 +86,9 @@ class NarudzbinaController extends Controller
     {
         $korpa = session()->get('korpa');
 
-        if(!$korpa) return redirect()->back();
+        if (! $korpa) {
+            return redirect()->back();
+        }
 
         // kreiranje narudzbine
         $narudzbina = Narudzbina::create([
@@ -100,7 +101,7 @@ class NarudzbinaController extends Controller
         foreach ($korpa as $proizvod_id => $detalji) {
             $narudzbina->stavke()->create([
                 'proizvod_id' => $proizvod_id,
-                'kolicina'    => $detalji['kolicina'],
+                'kolicina' => $detalji['kolicina'],
             ]);
 
             // skidanje zaliha
@@ -111,6 +112,7 @@ class NarudzbinaController extends Controller
         }
 
         session()->forget('korpa');
+
         return redirect()->route('user.orders')->with('success', 'Narudžbina uspešno kreirana!');
     }
 }

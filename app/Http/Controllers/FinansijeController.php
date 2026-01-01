@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\Narudzbina;
-use App\Models\Skladiste;
 use App\Models\Resurs;
+use App\Models\Skladiste;
+use Illuminate\Http\Request;
 
 class FinansijeController extends Controller
 {
     public function index()
     {
-        return "[ADMIN] Stranica za finansijski pregled";
+        return '[ADMIN] Stranica za finansijski pregled';
     }
 
     public function create()
     {
         $prva = Narudzbina::orderBy('datum_narudzbine', 'asc')->first();
         $poslednja = Narudzbina::orderBy('datum_narudzbine', 'desc')->first();
+
         return view('admin.finansije.create', compact('prva', 'poslednja'));
     }
 
@@ -31,7 +31,7 @@ class FinansijeController extends Controller
             ->where('status', 'isporucena')
             ->whereBetween('datum_narudzbine', [$od, $do])
             ->get();
-        
+
         $brojNarudzbina = $narudzbine->count();
 
         // racunanje prihoda za svaku stavku, tako sto mnozimo kolicinu proizvoda * cena proizvoda
@@ -47,24 +47,24 @@ class FinansijeController extends Controller
         })->unique();
 
         // trosak skladista
-        $listaSkladista = Skladiste::whereHas('proizvods', function($q) use ($prodatiProizvodiIds) {
+        $listaSkladista = Skladiste::whereHas('proizvods', function ($q) use ($prodatiProizvodiIds) {
             $q->whereIn('id', $prodatiProizvodiIds);
         })->get();
         $trosakSkladista = (float) $listaSkladista->sum('trosak');
 
         // trosak resursa
         $listaResursa = Resurs::whereIn('proizvod_id', $prodatiProizvodiIds)->get();
-        $ukupniTrosakResursa = $listaResursa->sum(function($resurs) {
+        $ukupniTrosakResursa = $listaResursa->sum(function ($resurs) {
             return $resurs->trosak * $resurs->kolicina;
         });
-        
+
         // izracunavanje
         $ukupniRashod = $trosakSkladista + $ukupniTrosakResursa;
         $netoDobit = $ukupniPrihod - $ukupniRashod;
 
         return view('admin.finansije.prikaz', compact(
-            'ukupniPrihod', 'ukupniRashod', 'netoDobit', 
-            'od', 'do', 'brojNarudzbina', 
+            'ukupniPrihod', 'ukupniRashod', 'netoDobit',
+            'od', 'do', 'brojNarudzbina',
             'listaSkladista', 'listaResursa'
         ));
     }

@@ -55,6 +55,6 @@ class Narudzbina extends Model
     public function proizvodi()
     {
         return $this->belongsToMany(Proizvod::class, 'narudzbina_stavkas', 'narudzbina_id', 'proizvod_id')
-                ->withPivot('kolicina', 'cena');
+            ->withPivot('kolicina', 'cena');
     }
 }

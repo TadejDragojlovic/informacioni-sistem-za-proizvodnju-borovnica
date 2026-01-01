@@ -29,10 +29,11 @@ class SkladisteController extends Controller
             'lokacija' => 'required|string',
             'kapacitet' => 'required|numeric',
             'temperatura' => 'required|numeric',
-            'trosak' => 'required|numeric'
+            'trosak' => 'required|numeric',
         ]);
-        
+
         Skladiste::create($valid);
+
         return redirect()->route('skladiste.index')->with('success', 'Skladište kreirano.');
     }
 
@@ -56,10 +57,11 @@ class SkladisteController extends Controller
             'lokacija' => 'required|string',
             'kapacitet' => 'required|numeric',
             'temperatura' => 'required|numeric',
-            'trosak' => 'required|numeric'
+            'trosak' => 'required|numeric',
         ]);
-        
+
         Skladiste::findOrFail($id)->update($valid);
+
         return redirect()->route('skladiste.index')->with('success', 'Skladište ažurirano.');
     }
 

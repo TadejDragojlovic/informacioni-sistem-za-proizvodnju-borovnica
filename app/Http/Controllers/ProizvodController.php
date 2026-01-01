@@ -29,6 +29,7 @@ class ProizvodController extends Controller
     public function create(Request $request): View
     {
         $skladista = Skladiste::all();
+
         return view('proizvod.create', compact('skladista'));
     }
 
@@ -43,6 +44,7 @@ class ProizvodController extends Controller
         ]);
 
         Proizvod::create($valid);
+
         return redirect()->route('proizvod.index')->with('success', 'Proizvod dodat.');
     }
 
@@ -57,6 +59,7 @@ class ProizvodController extends Controller
     {
         $proizvod = Proizvod::findOrFail($id);
         $skladista = Skladiste::all();
+
         return view('proizvod.edit', compact('proizvod', 'skladista'));
     }
 
@@ -72,6 +75,7 @@ class ProizvodController extends Controller
 
         $proizvod = Proizvod::findOrFail($id);
         $proizvod->update($valid);
+
         return redirect()->route('proizvod.index')->with('success', 'Proizvod ažuriran.');
     }
 

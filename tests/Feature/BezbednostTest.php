@@ -2,12 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
-
-use PHPUnit\Framework\Attributes\Test;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class BezbednostTest extends TestCase
 {
@@ -20,8 +18,11 @@ class BezbednostTest extends TestCase
 
         $response = $this->actingAs($zaposleni)->get(route('admin.finansije.create'));
 
-        if ($response->status() === 302) $response->assertRedirect('/');
-        else $response->assertStatus(403);
+        if ($response->status() === 302) {
+            $response->assertRedirect('/');
+        } else {
+            $response->assertStatus(403);
+        }
     }
 
     #[Test]
@@ -31,8 +32,11 @@ class BezbednostTest extends TestCase
 
         $response = $this->actingAs($kupac)->get(route('resurs.index'));
 
-        if ($response->status() === 302) $response->assertRedirect('/');
-        else $response->assertStatus(403);
+        if ($response->status() === 302) {
+            $response->assertRedirect('/');
+        } else {
+            $response->assertStatus(403);
+        }
     }
 
     #[Test]

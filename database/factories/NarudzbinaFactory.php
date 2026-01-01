@@ -14,7 +14,7 @@ class NarudzbinaFactory extends Factory
     {
         return [
             'datum_narudzbine' => fake()->date(),
-            'status' => fake()->randomElement(["kreirana","potvrdjena","u_obradi","otpremljena","isporucena","otkazana","vracena"]),
+            'status' => fake()->randomElement(['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena']),
             'user_id' => User::factory(),
         ];
     }

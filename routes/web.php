@@ -1,14 +1,13 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\ProizvodController;
-use App\Http\Controllers\SkladisteController;
-use App\Http\Controllers\ResursController;
-use App\Http\Controllers\NarudzbinaController;
 use App\Http\Controllers\FinansijeController;
 use App\Http\Controllers\KorpaController;
+use App\Http\Controllers\NarudzbinaController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProizvodController;
+use App\Http\Controllers\ResursController;
+use App\Http\Controllers\SkladisteController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -37,7 +36,7 @@ Route::middleware(['auth', 'role:kupac'])->group(function () {
 });
 
 // rute za radnike (zaposleni i admin)
-Route::middleware(['auth', 'role:admin,zaposleni'])->group(function() {
+Route::middleware(['auth', 'role:admin,zaposleni'])->group(function () {
     // upravljanje
     Route::resource('proizvod', ProizvodController::class);
     Route::resource('skladiste', SkladisteController::class);

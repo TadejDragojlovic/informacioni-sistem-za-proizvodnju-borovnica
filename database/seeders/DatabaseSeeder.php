@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Narudzbina;
+use App\Models\NarudzbinaStavka;
+use App\Models\Proizvod;
+use App\Models\Resurs;
+use App\Models\Skladiste;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Skladiste;
-use App\Models\Proizvod;
-use App\Models\Resurs;
-use App\Models\Narudzbina;
-use App\Models\NarudzbinaStavka;
 
 class DatabaseSeeder extends Seeder
 {
@@ -47,10 +47,10 @@ class DatabaseSeeder extends Seeder
         // kreiranje laznih podataka za testiranje
         Skladiste::factory(3)->create()->each(function ($skladiste) {
             Proizvod::factory(5)->create([
-                'skladiste_id' => $skladiste->id
+                'skladiste_id' => $skladiste->id,
             ])->each(function ($proizvod) {
                 Resurs::factory(2)->create([
-                    'proizvod_id' => $proizvod->id
+                    'proizvod_id' => $proizvod->id,
                 ]);
             });
         });
@@ -60,7 +60,7 @@ class DatabaseSeeder extends Seeder
             'user_id' => 3,
         ])->each(function ($narudzbina) {
             // stavke narudzbina
-            NarudzbinaStavka::factory(rand(1,3))->create([
+            NarudzbinaStavka::factory(rand(1, 3))->create([
                 'narudzbina_id' => $narudzbina->id,
                 'proizvod_id' => Proizvod::inRandomOrder()->first()->id,
             ]);
