@@ -15,8 +15,8 @@ class ProizvodFactory extends Factory
         return [
             'naziv' => fake()->regexify('[A-Za-z0-9]{50}'),
             'opis' => fake()->text(),
-            'kolicina' => fake()->numberBetween(0, 10000),
-            'cena' => fake()->randomFloat(2, 0, 19999.99),
+            'kolicina' => fake()->numberBetween(1, 5000),
+            'cena' => fake()->randomFloat(2, 0, 4999.99),
             'skladiste_id' => Skladiste::factory(),
         ];
     }

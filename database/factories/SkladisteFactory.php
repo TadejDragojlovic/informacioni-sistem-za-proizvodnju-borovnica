@@ -15,7 +15,7 @@ class SkladisteFactory extends Factory
             'lokacija' => fake()->word(),
             'kapacitet' => fake()->numberBetween(1, 10000),
             'temperatura' => fake()->randomFloat(2, -20, 20),
-            'trosak' => fake()->randomFloat(2, 0, 9999999.99),
+            'trosak' => fake()->randomFloat(2, 0, 9999.99),
         ];
     }
 }

@@ -47,6 +47,6 @@ Route::middleware(['auth', 'role:admin,zaposleni'])->group(function() {
 
 // samo admin rute
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/finansije', [FinansijeController::class, 'index'])->name('admin.finansije');
-    Route::get('/finansije/izvestaj', [FinansijeController::class, 'generate'])->name('admin.izvestaj');
+    Route::get('/admin/izvestaji/kreiraj', [FinansijeController::class, 'create'])->name('admin.finansije.create');
+    Route::post('/admin/izvestaji/prikaz', [FinansijeController::class, 'generate'])->name('admin.finansije.generate');
 });

@@ -56,8 +56,8 @@ class DatabaseSeeder extends Seeder
         });
 
         // kreiranje laznih narudzbina
-        Narudzbina::factory(10)->create([
-            'user_id' => 1,
+        Narudzbina::factory(100)->create([
+            'user_id' => 3,
         ])->each(function ($narudzbina) {
             // stavke narudzbina
             NarudzbinaStavka::factory(rand(1,3))->create([

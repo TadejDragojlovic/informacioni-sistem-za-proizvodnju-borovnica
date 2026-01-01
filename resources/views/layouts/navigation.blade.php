@@ -53,7 +53,7 @@
                         @endif
 
                         @if(Auth::user()->role === 'admin')
-                            <x-nav-link :href="route('admin.finansije')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold"
+                            <x-nav-link :href="route('admin.finansije.create')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold"
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Finansije') }}
                             </x-nav-link>
