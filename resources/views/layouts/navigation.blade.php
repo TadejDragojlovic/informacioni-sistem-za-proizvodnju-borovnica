@@ -30,10 +30,10 @@
                         @endif
 
                         @if(Auth::user()->role === 'admin' || Auth::user()->role === 'zaposleni')
-                            <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
+                            <!-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Dashboard') }}
-                            </x-nav-link>
+                            </x-nav-link> -->
                             <x-nav-link :href="route('proizvod.index')" :active="request()->routeIs('proizvod.index')"
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Upravljanje Proizvodima') }}
