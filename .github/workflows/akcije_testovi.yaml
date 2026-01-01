@@ -36,6 +36,12 @@ jobs:
       - name: Instalacija composer paketa
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: Instalacija Nodejs zavisnosti
+        run: npm install
+
+      - name: Build vite
+        run: npm run build
+
       - name: Kopiranje .env.example u .env fajl
         run: cp .env.example .env
 
