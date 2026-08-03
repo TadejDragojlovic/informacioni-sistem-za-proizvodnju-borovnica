@@ -17,7 +17,10 @@ return new class extends Migration
             $table->text('opis')->nullable();
             $table->integer('kolicina');
             $table->decimal('cena', 10, 2);
-            $table->foreignId('skladiste_id');
+            $table->foreignId('skladiste_id')
+                  ->constrained('skladistes')
+                  ->restrictOnDelete()
+                  ->cascadeOnUpdate();
             $table->timestamps();
         });
     }

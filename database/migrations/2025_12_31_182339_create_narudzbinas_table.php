@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->date('datum_narudzbine');
             $table->enum('status', ['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena']);
-            $table->foreignId('user_id');
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->restrictOnDelete()
+                  ->cascadeOnUpdate();
             $table->timestamps();
         });
     }

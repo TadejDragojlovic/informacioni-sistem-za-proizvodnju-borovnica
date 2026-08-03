@@ -16,7 +16,10 @@ return new class extends Migration
             $table->string('naziv');
             $table->decimal('kolicina', 10, 2);
             $table->decimal('trosak', 12, 2);
-            $table->foreignId('proizvod_id');
+            $table->foreignId('proizvod_id')
+                  ->constrained('proizvods')
+                  ->cascadeOnDelete()
+                  ->cascadeOnUpdate();
             $table->timestamps();
         });
     }

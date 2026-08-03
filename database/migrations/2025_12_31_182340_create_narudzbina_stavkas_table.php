@@ -13,8 +13,17 @@ return new class extends Migration
     {
         Schema::create('narudzbina_stavkas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('narudzbina_id');
-            $table->foreignId('proizvod_id');
+
+            $table->foreignId('narudzbina_id')
+                  ->constrained('narudzbinas')
+                  ->cascadeOnDelete()
+                  ->cascadeOnUpdate();
+
+            $table->foreignId('proizvod_id')
+                  ->constrained('proizvods')
+                  ->restrictOnDelete()
+                  ->cascadeOnUpdate();
+
             $table->integer('kolicina');
             $table->timestamps();
         });
