@@ -15,14 +15,14 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('narudzbina_id')
-                  ->constrained('narudzbinas')
-                  ->cascadeOnDelete()
-                  ->cascadeOnUpdate();
+                ->constrained('narudzbinas')
+                ->cascadeOnDelete()
+                ->cascadeOnUpdate();
 
             $table->foreignId('proizvod_id')
-                  ->constrained('proizvods')
-                  ->restrictOnDelete()
-                  ->cascadeOnUpdate();
+                ->constrained('proizvods')
+                ->restrictOnDelete()
+                ->cascadeOnUpdate();
 
             $table->integer('kolicina');
             $table->timestamps();
