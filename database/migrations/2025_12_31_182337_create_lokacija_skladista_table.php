@@ -11,18 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('resurs', function (Blueprint $table) {
+        Schema::create('skladisna_lokacija', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('skladiste_id')
+                ->constrained('skladistes')
+                ->restrictOnDelete();
             $table->string('naziv');
-            $table->decimal('kolicina', 10, 2);
-            $table->decimal('trosak', 12, 2);
-
-            $table->foreignId('proizvod_id')
-                ->constrained('proizvods')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
-
+            $table->text('opis');
+            $table->boolean('aktivna')->default(true);
             $table->timestamps();
+
+            $table->unique(['skladiste_id', 'naziv']);
         });
     }
 
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('resurs');
+        Schema::dropIfExists('skladisna_lokacija');
     }
 };

@@ -13,14 +13,12 @@ return new class extends Migration
     {
         Schema::create('narudzbinas', function (Blueprint $table) {
             $table->id();
-            $table->date('datum_narudzbine');
-            $table->enum('status', ['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena']);
-
             $table->foreignId('user_id')
                 ->constrained('users')
-                ->restrictOnDelete()
-                ->cascadeOnUpdate();
+                ->restrictOnDelete();
 
+            $table->string('status')->default('potvrdjena');
+            $table->string('adresa_isporuke');
             $table->timestamps();
         });
     }
