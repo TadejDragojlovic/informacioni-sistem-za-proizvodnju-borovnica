@@ -9,9 +9,9 @@ use App\Models\Skladiste;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use PHPUnit\Framework\Attributes\Group;
 
 #[Group('legacy-schema')]
 class FinansijskiIzvestajTest extends TestCase

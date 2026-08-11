@@ -5,9 +5,9 @@ namespace Tests\Feature;
 use App\Models\Narudzbina;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use PHPUnit\Framework\Attributes\Group;
 
 #[Group('legacy-schema')]
 class ZaposleniNarudzbinaTest extends TestCase
