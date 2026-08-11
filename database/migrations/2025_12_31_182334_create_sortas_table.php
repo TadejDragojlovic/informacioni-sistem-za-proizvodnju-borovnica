@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('skladistes', function (Blueprint $table) {
+        Schema::create('sortas', function (Blueprint $table) {
             $table->id();
             $table->string('naziv')->unique();
-            $table->string('lokacija');
-            $table->decimal('mesecni_trosak', 10, 2)->unsigned();
-            $table->boolean('aktivan')->default(true);
+            $table->text('opis');
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('skladistes');
+        Schema::dropIfExists('sortas');
     }
 };
