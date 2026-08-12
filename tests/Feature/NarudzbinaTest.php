@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\Proizvod;
 use App\Models\Skladiste;
 use App\Models\User;
@@ -18,7 +19,7 @@ class NarudzbinaTest extends TestCase
     #[Test]
     public function test_korisnik_moze_kreirati_narudzbinu()
     {
-        $user = User::factory()->create(['role' => 'kupac']);
+        $user = User::factory()->create(['role' => UserRole::KUPAC->value]);
         $skladiste = Skladiste::create(['lokacija' => 'Valjevo', 'kapacitet' => 1500, 'temperatura' => -10, 'trosak' => 12000]);
         $proizvod = Proizvod::create([
             'naziv' => 'Proizvod1',

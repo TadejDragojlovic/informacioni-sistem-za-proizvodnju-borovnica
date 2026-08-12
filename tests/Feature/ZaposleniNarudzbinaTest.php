@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\Narudzbina;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,7 +18,7 @@ class ZaposleniNarudzbinaTest extends TestCase
     #[Test]
     public function test_zaposleni_moze_da_oznaci_narudzbinu_kao_isporucenu()
     {
-        $zaposleni = User::factory()->create(['role' => 'zaposleni']);
+        $zaposleni = User::factory()->create(['role' => UserRole::ZAPOSLENI->value]);
 
         $narudzbina = Narudzbina::create([
             'user_id' => User::factory()->create()->id,

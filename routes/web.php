@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Http\Controllers\FinansijeController;
 use App\Http\Controllers\KorpaController;
 use App\Http\Controllers\NarudzbinaController;
@@ -25,7 +26,7 @@ require __DIR__.'/auth.php';
 Route::get('/', [ProizvodController::class, 'pocetna'])->name('home');
 
 // kupac rute
-Route::middleware(['auth', 'role:kupac'])->group(function () {
+Route::middleware(['auth', 'role:'.UserRole::KUPAC->value])->group(function () {
     Route::get('/moje-narudzbine', [NarudzbinaController::class, 'mojeNarudzbine'])->name('user.orders');
     Route::post('/narudzbine/potvrdi', [NarudzbinaController::class, 'potvrdi'])->name('narudzbine.potvrdi');
 
@@ -36,7 +37,10 @@ Route::middleware(['auth', 'role:kupac'])->group(function () {
 });
 
 // rute za radnike (zaposleni i admin)
-Route::middleware(['auth', 'role:admin,zaposleni'])->group(function () {
+Route::middleware([
+    'auth',
+    'role:'.UserRole::ADMIN->value.','.UserRole::ZAPOSLENI->value,
+])->group(function () {
     // upravljanje
     Route::resource('proizvod', ProizvodController::class);
     Route::resource('skladiste', SkladisteController::class);
@@ -45,7 +49,7 @@ Route::middleware(['auth', 'role:admin,zaposleni'])->group(function () {
 });
 
 // samo admin rute
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:'.UserRole::ADMIN->value])->group(function () {
     Route::get('/admin/izvestaji/kreiraj', [FinansijeController::class, 'create'])->name('admin.finansije.create');
     Route::post('/admin/izvestaji/prikaz', [FinansijeController::class, 'generate'])->name('admin.finansije.generate');
 });
