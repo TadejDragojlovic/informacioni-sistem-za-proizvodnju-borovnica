@@ -17,7 +17,7 @@ class CheckRole
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $allowedRoles = array_filter(
-            array_map(fn (string $role) => UserRole::tryFrom($role)?->value, $roles)
+            array_map(fn (string $role) => UserRole::tryFrom($role), $roles)
         );
 
         if (! $request->user() || ! in_array($request->user()->role, $allowedRoles, true)) {

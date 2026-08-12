@@ -22,7 +22,7 @@ use App\Enums\UserRole;
                     </x-nav-link>
 
                     @auth
-                    @if(Auth::user()->role === UserRole::KUPAC->value)
+                    @if(Auth::user()->role === UserRole::KUPAC)
                     <x-nav-link :href="route('user.orders')" :active="request()->routeIs('user.orders')"
                         class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                         {{ __('Moje Narudžbine') }}
@@ -33,7 +33,7 @@ use App\Enums\UserRole;
                     </x-nav-link>
                     @endif
 
-                    @if(Auth::user()->role === UserRole::ADMIN->value || Auth::user()->role === UserRole::ZAPOSLENI->value)
+                    @if(Auth::user()->role === UserRole::ADMIN || Auth::user()->role === UserRole::ZAPOSLENI)
                     <!-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Dashboard') }}
@@ -56,7 +56,7 @@ use App\Enums\UserRole;
                     </x-nav-link>
                     @endif
 
-                    @if(Auth::user()->role === UserRole::ADMIN->value)
+                    @if(Auth::user()->role === UserRole::ADMIN)
                     <x-nav-link :href="route('admin.finansije.create')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold"
                         class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                         {{ __('Finansije') }}
