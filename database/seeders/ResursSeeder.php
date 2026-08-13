@@ -27,19 +27,26 @@ class ResursSeeder extends Seeder
         foreach ($resursi as $resurs) {
             $lot = Lot::where('oznaka', $resurs['lot'])->firstOrFail();
 
-            Resurs::updateOrCreate(
-                [
+            $zapis = Resurs::query()
+                ->where('lot_id', $lot->id)
+                ->where('naziv', $resurs['naziv'])
+                ->whereDate('datum_upotrebe', $resurs['datum_upotrebe'])
+                ->first();
+
+            if ($zapis === null) {
+                $zapis = new Resurs([
                     'lot_id' => $lot->id,
                     'naziv' => $resurs['naziv'],
                     'datum_upotrebe' => $resurs['datum_upotrebe'],
-                ],
-                [
-                    'kolicina' => $resurs['kolicina'],
-                    'jedinica_mere' => $resurs['jedinica_mere'],
-                    'cena_po_jedinici' => $resurs['cena_po_jedinici'],
-                    'evidentirao_user_id' => $zaposleni->id,
-                ]
-            );
+                ]);
+            }
+
+            $zapis->fill([
+                'kolicina' => $resurs['kolicina'],
+                'jedinica_mere' => $resurs['jedinica_mere'],
+                'cena_po_jedinici' => $resurs['cena_po_jedinici'],
+                'evidentirao_user_id' => $zaposleni->id,
+            ])->save();
         }
     }
 }
