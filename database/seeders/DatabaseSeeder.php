@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Narudzbina;
 use App\Models\NarudzbinaStavka;
 use App\Models\Proizvod;
@@ -25,7 +26,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin 1',
             'email' => 'admin@borovnica.com',
             'password' => bcrypt('admin'),
-            'role' => 'admin',
+            'role' => UserRole::ADMIN->value,
         ]);
 
         // kreacija naloga za zaposlenog
@@ -33,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Zaposleni 1',
             'email' => 'zaposleni@borovnica.com',
             'password' => bcrypt('zaposleni'),
-            'role' => 'zaposleni',
+            'role' => UserRole::ZAPOSLENI->value,
         ]);
 
         // kreacija naloga za kupca
@@ -41,7 +42,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Kupac 1',
             'email' => 'kupac@kupac.com',
             'password' => bcrypt('kupac'),
-            'role' => 'kupac',
+            'role' => UserRole::KUPAC->value,
         ]);
 
         // kreiranje laznih podataka za testiranje

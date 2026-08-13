@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserRole;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,11 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (! $request->user() || ! in_array($request->user()->role, $roles)) {
+        $allowedRoles = array_filter(
+            array_map(fn (string $role) => UserRole::tryFrom($role), $roles)
+        );
+
+        if (! $request->user() || ! in_array($request->user()->role, $allowedRoles, true)) {
             return redirect('/')->with('error', 'Nemate pristup ovoj stranici.');
         }
 

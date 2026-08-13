@@ -1,3 +1,7 @@
+@php
+use App\Enums\UserRole;
+@endphp
+
 <nav x-data="{ open: false }" class="bg-borovnica-dark border-b border-borovnica-accent">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,51 +17,51 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('home')" :active="request()->routeIs('home')"
-                    class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                         {{ __('Početna') }}
                     </x-nav-link>
 
                     @auth
-                        @if(Auth::user()->role === 'kupac')
-                            <x-nav-link :href="route('user.orders')" :active="request()->routeIs('user.orders')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Moje Narudžbine') }}
-                            </x-nav-link>
-                            <x-nav-link :href="route('korpa.index')" :active="request()->routeIs('korpa.index')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Korpa') }}
-                            </x-nav-link>
-                        @endif
+                    @if(Auth::user()->role === UserRole::KUPAC)
+                    <x-nav-link :href="route('user.orders')" :active="request()->routeIs('user.orders')"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Moje Narudžbine') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('korpa.index')" :active="request()->routeIs('korpa.index')"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Korpa') }}
+                    </x-nav-link>
+                    @endif
 
-                        @if(Auth::user()->role === 'admin' || Auth::user()->role === 'zaposleni')
-                            <!-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
+                    @if(Auth::user()->role === UserRole::ADMIN || Auth::user()->role === UserRole::ZAPOSLENI)
+                    <!-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
                             class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
                                 {{ __('Dashboard') }}
                             </x-nav-link> -->
-                            <x-nav-link :href="route('proizvod.index')" :active="request()->routeIs('proizvod.index')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Upravljanje Proizvodima') }}
-                            </x-nav-link>
-                            <x-nav-link :href="route('skladiste.index')" :active="request()->routeIs('skladiste.index')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Skladišta') }}
-                            </x-nav-link>
-                            <x-nav-link :href="route('resurs.index')" :active="request()->routeIs('resurs.index')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Resursi') }}
-                            </x-nav-link>
-                            <x-nav-link :href="route('narudzbine.index')" :active="request()->routeIs('narudzbine.index')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Sve Narudžbine') }}
-                            </x-nav-link>
-                        @endif
+                    <x-nav-link :href="route('proizvod.index')" :active="request()->routeIs('proizvod.index')"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Upravljanje Proizvodima') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('skladiste.index')" :active="request()->routeIs('skladiste.index')"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Skladišta') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('resurs.index')" :active="request()->routeIs('resurs.index')"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Resursi') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('narudzbine.index')" :active="request()->routeIs('narudzbine.index')"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Sve Narudžbine') }}
+                    </x-nav-link>
+                    @endif
 
-                        @if(Auth::user()->role === 'admin')
-                            <x-nav-link :href="route('admin.finansije.create')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Finansije') }}
-                            </x-nav-link>
-                        @endif
+                    @if(Auth::user()->role === UserRole::ADMIN)
+                    <x-nav-link :href="route('admin.finansije.create')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold"
+                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
+                        {{ __('Finansije') }}
+                    </x-nav-link>
+                    @endif
                     @endauth
                 </div>
             </div>
@@ -65,45 +69,45 @@
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
-                    <x-dropdown align="right" width="48">
-                        <x-slot name="trigger">
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                                <div>{{ Auth::user()->name }}</div>
+                <x-dropdown align="right" width="48">
+                    <x-slot name="trigger">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            <div>{{ Auth::user()->name }}</div>
 
-                                <div class="ms-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                            </button>
-                        </x-slot>
+                            <div class="ms-1">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </button>
+                    </x-slot>
 
-                        <x-slot name="content">
-                            <x-dropdown-link :href="route('profile.edit')">
-                                {{ __('Profile') }}
-                            </x-dropdown-link>
+                    <x-slot name="content">
+                        <x-dropdown-link :href="route('profile.edit')">
+                            {{ __('Profile') }}
+                        </x-dropdown-link>
 
-                            <!-- Authentication -->
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
+                        <!-- Authentication -->
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
 
-                                <x-dropdown-link :href="route('logout')"
-                                        onclick="event.preventDefault();
+                            <x-dropdown-link :href="route('logout')"
+                                onclick="event.preventDefault();
                                                     this.closest('form').submit();">
-                                    {{ __('Log Out') }}
-                                </x-dropdown-link>
-                            </form>
-                        </x-slot>
-                    </x-dropdown>
+                                {{ __('Log Out') }}
+                            </x-dropdown-link>
+                        </form>
+                    </x-slot>
+                </x-dropdown>
                 @else
-                    @if (Route::has('login'))
-                    <div class="space-x-4">
-                        <a href="{{ route('login') }}" class="text-white hover:text-borovnica-soft font-medium">Prijava</a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="text-white hover:text-borovnica-soft font-medium">Registracija</a>
-                        @endif
-                    </div>
+                @if (Route::has('login'))
+                <div class="space-x-4">
+                    <a href="{{ route('login') }}" class="text-white hover:text-borovnica-soft font-medium">Prijava</a>
+                    @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="text-white hover:text-borovnica-soft font-medium">Registracija</a>
                     @endif
+                </div>
+                @endif
                 @endauth
             </div>
 

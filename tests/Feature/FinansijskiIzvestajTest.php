@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\Narudzbina;
 use App\Models\Proizvod;
 use App\Models\Resurs;
@@ -22,7 +23,7 @@ class FinansijskiIzvestajTest extends TestCase
     public function test_izvestaj_tacno_obradjuje_prihode_i_troskove()
     {
         // 1. Setup: Admin koji ima pristup
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
         $danas = Carbon::create(2026, 1, 1);
 
         // trosak: 3000

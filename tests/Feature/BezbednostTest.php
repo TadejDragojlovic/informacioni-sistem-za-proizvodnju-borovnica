@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,7 +15,7 @@ class BezbednostTest extends TestCase
     #[Test]
     public function zaposleni_nema_pristup_finansijskim_izvestajima()
     {
-        $zaposleni = User::factory()->create(['role' => 'zaposleni']);
+        $zaposleni = User::factory()->create(['role' => UserRole::ZAPOSLENI->value]);
 
         $response = $this->actingAs($zaposleni)->get(route('admin.finansije.create'));
 
@@ -28,7 +29,7 @@ class BezbednostTest extends TestCase
     #[Test]
     public function obican_kupac_ne_moze_da_vidi_resurse()
     {
-        $kupac = User::factory()->create(['role' => 'kupac']);
+        $kupac = User::factory()->create(['role' => UserRole::KUPAC->value]);
 
         $response = $this->actingAs($kupac)->get(route('resurs.index'));
 
