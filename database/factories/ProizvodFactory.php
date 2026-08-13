@@ -2,22 +2,20 @@
 
 namespace Database\Factories;
 
-use App\Models\Skladiste;
+use App\Models\Sorta;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProizvodFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     */
     public function definition(): array
     {
         return [
-            'naziv' => fake()->regexify('[A-Za-z0-9]{50}'),
-            'opis' => fake()->text(),
-            'kolicina' => fake()->numberBetween(1, 5000),
-            'cena' => fake()->randomFloat(2, 0, 4999.99),
-            'skladiste_id' => Skladiste::factory(),
+            'naziv' => fake()->unique()->words(3, true),
+            'opis' => fake()->sentence(),
+            'sorta_id' => Sorta::factory(),
+            'neto_kolicina_g' => fake()->randomElement([125, 250, 500, 1000]),
+            'cena' => fake()->randomFloat(2, 100, 5000),
+            'aktivan' => true,
         ];
     }
 }

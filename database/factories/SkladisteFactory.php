@@ -6,16 +6,13 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class SkladisteFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     */
     public function definition(): array
     {
         return [
-            'lokacija' => fake()->word(),
-            'kapacitet' => fake()->numberBetween(1, 10000),
-            'temperatura' => fake()->randomFloat(2, -20, 20),
-            'trosak' => fake()->randomFloat(2, 0, 9999.99),
+            'naziv' => fake()->unique()->company().' hladnjača',
+            'lokacija' => fake()->city(),
+            'mesecni_trosak' => fake()->randomFloat(2, 10000, 150000),
+            'aktivan' => true,
         ];
     }
 }
