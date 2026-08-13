@@ -30,6 +30,24 @@ class UserSeeder extends Seeder
                 'role' => UserRole::KUPAC->value,
                 'password' => 'kupac',
             ],
+            [
+                'name' => 'Zaposleni 2',
+                'email' => 'zaposleni2@borovnica.com',
+                'role' => UserRole::ZAPOSLENI->value,
+                'password' => 'zaposleni2',
+            ],
+            [
+                'name' => 'Kupac 2',
+                'email' => 'kupac2@borovnica.com',
+                'role' => UserRole::KUPAC->value,
+                'password' => 'kupac2',
+            ],
+            [
+                'name' => 'Kupac 3',
+                'email' => 'kupac3@borovnica.com',
+                'role' => UserRole::KUPAC->value,
+                'password' => 'kupac3',
+            ],
         ];
 
         foreach ($users as $data) {
