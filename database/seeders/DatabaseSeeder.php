@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             SkladisteSeeder::class,
             SkladisnaLokacijaSeeder::class,
             ProizvodSeeder::class,
+            LotSeeder::class,
+            NarudzbinaSeeder::class,
+            ResursSeeder::class,
         ]);
     }
 }
