@@ -17,6 +17,8 @@ class NarudzbinaStavkaFactory extends Factory
             'narudzbina_id' => Narudzbina::factory(),
             'proizvod_id' => Proizvod::factory(),
             'kolicina' => fake()->numberBetween(1, 20),
+            'neto_kolicina_g' => fake()->randomElement([250, 500]),
+            'cena_po_jedinici' => fake()->randomFloat(2, 100, 2000),
         ];
     }
 }

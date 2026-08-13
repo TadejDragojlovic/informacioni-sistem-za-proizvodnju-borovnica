@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\NarudzbinaStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,9 +14,9 @@ class NarudzbinaFactory extends Factory
     public function definition(): array
     {
         return [
-            'datum_narudzbine' => fake()->date(),
-            'status' => fake()->randomElement(['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena']),
             'user_id' => User::factory(),
+            'status' => NarudzbinaStatus::POTVRDJENA,
+            'adresa_isporuke' => fake()->address(),
         ];
     }
 }
