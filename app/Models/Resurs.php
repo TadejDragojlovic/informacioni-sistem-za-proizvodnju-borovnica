@@ -10,35 +10,36 @@ class Resurs extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+    protected $table = 'resurs';
+
     protected $fillable = [
+        'lot_id',
         'naziv',
         'kolicina',
-        'trosak',
-        'proizvod_id',
+        'jedinica_mere',
+        'cena_po_jedinici',
+        'datum_upotrebe',
+        'evidentirao_user_id',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'id' => 'integer',
+            'lot_id' => 'integer',
             'kolicina' => 'decimal:2',
-            'trosak' => 'decimal:2',
-            'proizvod_id' => 'integer',
+            'cena_po_jedinici' => 'decimal:2',
+            'datum_upotrebe' => 'date',
+            'evidentirao_user_id' => 'integer',
         ];
     }
 
-    public function proizvod(): BelongsTo
+    public function lot(): BelongsTo
     {
-        return $this->belongsTo(Proizvod::class);
+        return $this->belongsTo(Lot::class, 'lot_id');
+    }
+
+    public function evidentiraoUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'evidentirao_user_id');
     }
 }

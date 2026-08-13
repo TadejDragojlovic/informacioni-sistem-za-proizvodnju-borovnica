@@ -11,40 +11,34 @@ class Proizvod extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+    protected $table = 'proizvods';
+
     protected $fillable = [
         'naziv',
         'opis',
-        'kolicina',
+        'sorta_id',
+        'neto_kolicina_g',
         'cena',
-        'skladiste_id',
+        'aktivan',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'id' => 'integer',
+            'sorta_id' => 'integer',
+            'neto_kolicina_g' => 'integer',
             'cena' => 'decimal:2',
-            'skladiste_id' => 'integer',
+            'aktivan' => 'boolean',
         ];
     }
 
-    public function skladiste(): BelongsTo
+    public function sorta(): BelongsTo
     {
-        return $this->belongsTo(Skladiste::class);
+        return $this->belongsTo(Sorta::class, 'sorta_id');
     }
 
     public function narudzbinaStavkas(): HasMany
     {
-        return $this->hasMany(NarudzbinaStavka::class);
+        return $this->hasMany(NarudzbinaStavka::class, 'proizvod_id');
     }
 }

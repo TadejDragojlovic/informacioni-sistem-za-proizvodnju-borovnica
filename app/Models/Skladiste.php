@@ -10,34 +10,25 @@ class Skladiste extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+    protected $table = 'skladistes';
+
     protected $fillable = [
+        'naziv',
         'lokacija',
-        'kapacitet',
-        'temperatura',
-        'trosak',
+        'mesecni_trosak',
+        'aktivan',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'id' => 'integer',
-            'temperatura' => 'decimal:2',
-            'trosak' => 'decimal:2',
+            'mesecni_trosak' => 'decimal:2',
+            'aktivan' => 'boolean',
         ];
     }
 
-    public function proizvods(): HasMany
+    public function skladisneLokacije(): HasMany
     {
-        return $this->hasMany(Proizvod::class);
+        return $this->hasMany(SkladisnaLokacija::class, 'skladiste_id');
     }
 }
