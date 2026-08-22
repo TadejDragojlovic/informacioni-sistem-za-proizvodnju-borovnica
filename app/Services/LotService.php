@@ -6,6 +6,7 @@ use App\Enums\KlasaKvaliteta;
 use App\Enums\LotDogadjajTip;
 use App\Enums\LotStatus;
 use App\Models\Lot;
+use App\Models\LotDogadjaj;
 use App\Models\SkladisnaLokacija;
 use App\Models\Skladiste;
 use App\Models\User;
@@ -258,5 +259,114 @@ class LotService
 
             return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
         });
+    }
+
+    public function blokiraj(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
+    {
+        $razlog = $this->normalizujObavezanRazlog($razlog);
+
+        return DB::transaction(function () use ($lot, $razlog, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+
+            if (! in_array($zakljucanLot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV], true)) {
+                throw new DomainException('Samo uskladišten ili raspoloživ lot može biti blokiran.');
+            }
+
+            $prethodniStatus = $zakljucanLot->status;
+            $zakljucanLot->update(['status' => LotStatus::BLOKIRAN]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::LOT_BLOKIRAN,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => $prethodniStatus,
+                'novi_status' => LotStatus::BLOKIRAN,
+                'razlog' => $razlog,
+            ]);
+
+            return $zakljucanLot->load('dogadjaji');
+        });
+    }
+
+    public function odblokiraj(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
+    {
+        $razlog = $this->normalizujObavezanRazlog($razlog);
+
+        return DB::transaction(function () use ($lot, $razlog, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+
+            if ($zakljucanLot->status !== LotStatus::BLOKIRAN) {
+                throw new DomainException('Samo blokiran lot može biti odblokiran.');
+            }
+
+            $dogadjajBlokiranja = LotDogadjaj::query()
+                ->where('lot_id', $zakljucanLot->id)
+                ->where('tip', LotDogadjajTip::LOT_BLOKIRAN)
+                ->latest('vreme_dogadjaja')
+                ->latest('id')
+                ->lockForUpdate()
+                ->first();
+            $statusZaVracanje = $dogadjajBlokiranja?->prethodni_status;
+
+            if (! in_array($statusZaVracanje, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV], true)) {
+                throw new DomainException('Prethodni status lota nije moguće pouzdano utvrditi.');
+            }
+
+            $this->proveriAktivnuTrenutnuLokaciju($zakljucanLot);
+
+            if ($statusZaVracanje === LotStatus::RASPOLOZIV) {
+                if ($zakljucanLot->klasa_kvaliteta === null || $zakljucanLot->broj_dokumenta_kvaliteta === null) {
+                    throw new DomainException('Lot nema podatke o kvalitetu potrebne za status RASPOLOZIV.');
+                }
+
+                if ($zakljucanLot->raspoloziva_kolicina_g <= 0) {
+                    throw new DomainException('Lot bez raspoložive količine ne može ponovo biti raspoloživ.');
+                }
+            }
+
+            $zakljucanLot->update(['status' => $statusZaVracanje]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::LOT_ODBLOKIRAN,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => LotStatus::BLOKIRAN,
+                'novi_status' => $statusZaVracanje,
+                'razlog' => $razlog,
+            ]);
+
+            return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
+        });
+    }
+
+    private function normalizujObavezanRazlog(string $razlog): string
+    {
+        $razlog = trim($razlog);
+
+        if ($razlog === '') {
+            throw new InvalidArgumentException('Razlog je obavezan.');
+        }
+
+        return $razlog;
+    }
+
+    private function proveriAktivnuTrenutnuLokaciju(Lot $lot): void
+    {
+        if ($lot->trenutna_skladisna_lokacija_id === null) {
+            throw new DomainException('Lot nema trenutnu skladišnu lokaciju.');
+        }
+
+        $lokacija = SkladisnaLokacija::query()
+            ->lockForUpdate()
+            ->findOrFail($lot->trenutna_skladisna_lokacija_id);
+        $skladiste = Skladiste::query()
+            ->lockForUpdate()
+            ->findOrFail($lokacija->skladiste_id);
+
+        if (! $lokacija->aktivna || ! $skladiste->aktivan) {
+            throw new DomainException('Lot mora biti na aktivnoj lokaciji u aktivnom skladištu.');
+        }
     }
 }
