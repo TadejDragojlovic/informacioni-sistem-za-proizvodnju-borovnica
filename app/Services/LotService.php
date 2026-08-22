@@ -5,8 +5,11 @@ namespace App\Services;
 use App\Enums\LotDogadjajTip;
 use App\Enums\LotStatus;
 use App\Models\Lot;
+use App\Models\SkladisnaLokacija;
+use App\Models\Skladiste;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -52,6 +55,53 @@ class LotService
             ]);
 
             return $lot->load('dogadjaji');
+        });
+    }
+
+    public function primiUSkladiste(
+        Lot $lot,
+        SkladisnaLokacija $skladisnaLokacija,
+        ?User $evidentirao = null
+    ): Lot {
+        return DB::transaction(function () use ($lot, $skladisnaLokacija, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+            $zakljucanaLokacija = SkladisnaLokacija::query()
+                ->lockForUpdate()
+                ->findOrFail($skladisnaLokacija->id);
+            $skladiste = Skladiste::query()
+                ->lockForUpdate()
+                ->findOrFail($zakljucanaLokacija->skladiste_id);
+
+            if ($zakljucanLot->status !== LotStatus::KREIRAN) {
+                throw new DomainException('Samo lot u statusu KREIRAN može biti primljen u skladište.');
+            }
+
+            if (! $zakljucanaLokacija->aktivna) {
+                throw new DomainException('Lot nije moguće primiti na neaktivnu skladišnu lokaciju.');
+            }
+
+            if (! $skladiste->aktivan) {
+                throw new DomainException('Lot nije moguće primiti u neaktivno skladište.');
+            }
+
+            $zakljucanLot->update([
+                'trenutna_skladisna_lokacija_id' => $zakljucanaLokacija->id,
+                'status' => LotStatus::USKLADISTEN,
+            ]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::PRIJEM_U_SKLADISTE,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => LotStatus::KREIRAN,
+                'novi_status' => LotStatus::USKLADISTEN,
+                'prethodna_skladisna_lokacija_id' => null,
+                'nova_skladisna_lokacija_id' => $zakljucanaLokacija->id,
+                'razlog' => null,
+            ]);
+
+            return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
         });
     }
 }

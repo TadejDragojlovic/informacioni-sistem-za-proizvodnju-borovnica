@@ -7,10 +7,13 @@ use App\Enums\LotStatus;
 use App\Enums\UserRole;
 use App\Models\Lot;
 use App\Models\Parcela;
+use App\Models\SkladisnaLokacija;
+use App\Models\Skladiste;
 use App\Models\Sorta;
 use App\Models\User;
 use App\Services\LotService;
 use Carbon\Carbon;
+use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
@@ -101,6 +104,76 @@ class LotServiceTest extends TestCase
         $this->assertDatabaseCount('lot_dogadjajs', 0);
     }
 
+    #[Test]
+    public function prima_kreiran_lot_na_aktivnu_skladisnu_lokaciju(): void
+    {
+        Carbon::setTestNow('2026-07-01 10:00:00');
+        $zaposleni = User::factory()->create(['role' => UserRole::ZAPOSLENI]);
+        $lokacija = SkladisnaLokacija::factory()->create();
+        $lot = $this->kreiranLot();
+
+        $primljenLot = app(LotService::class)->primiUSkladiste($lot, $lokacija, $zaposleni);
+
+        $this->assertSame(LotStatus::USKLADISTEN, $primljenLot->status);
+        $this->assertSame($lokacija->id, $primljenLot->trenutna_skladisna_lokacija_id);
+
+        $dogadjaj = $primljenLot->dogadjaji
+            ->firstWhere('tip', LotDogadjajTip::PRIJEM_U_SKLADISTE);
+
+        $this->assertNotNull($dogadjaj);
+        $this->assertSame(LotStatus::KREIRAN, $dogadjaj->prethodni_status);
+        $this->assertSame(LotStatus::USKLADISTEN, $dogadjaj->novi_status);
+        $this->assertNull($dogadjaj->prethodna_skladisna_lokacija_id);
+        $this->assertSame($lokacija->id, $dogadjaj->nova_skladisna_lokacija_id);
+        $this->assertSame($zaposleni->id, $dogadjaj->evidentirao_user_id);
+        $this->assertTrue($dogadjaj->vreme_dogadjaja->equalTo(now()));
+    }
+
+    #[Test]
+    public function odbija_prijem_lota_koji_nije_u_statusu_kreiran(): void
+    {
+        $lokacija = SkladisnaLokacija::factory()->create();
+        $lot = Lot::factory()->create(['status' => LotStatus::USKLADISTEN]);
+
+        $this->ocekujOdbijenPrijem(
+            $lot,
+            $lokacija,
+            'Samo lot u statusu KREIRAN može biti primljen u skladište.'
+        );
+
+        $this->assertNull($lot->fresh()->trenutna_skladisna_lokacija_id);
+    }
+
+    #[Test]
+    public function odbija_prijem_na_neaktivnu_skladisnu_lokaciju(): void
+    {
+        $lokacija = SkladisnaLokacija::factory()->create(['aktivna' => false]);
+        $lot = $this->kreiranLot();
+
+        $this->ocekujOdbijenPrijem(
+            $lot,
+            $lokacija,
+            'Lot nije moguće primiti na neaktivnu skladišnu lokaciju.'
+        );
+    }
+
+    #[Test]
+    public function odbija_prijem_u_neaktivno_skladiste(): void
+    {
+        $skladiste = Skladiste::factory()->create(['aktivan' => false]);
+        $lokacija = SkladisnaLokacija::factory()->create([
+            'skladiste_id' => $skladiste->id,
+            'aktivna' => true,
+        ]);
+        $lot = $this->kreiranLot();
+
+        $this->ocekujOdbijenPrijem(
+            $lot,
+            $lokacija,
+            'Lot nije moguće primiti u neaktivno skladište.'
+        );
+    }
+
     private function podaci(Sorta $sorta, Parcela $parcela, string $datumBerbe): array
     {
         return [
@@ -109,5 +182,33 @@ class LotServiceTest extends TestCase
             'datum_berbe' => $datumBerbe,
             'pocetna_kolicina_g' => 5000,
         ];
+    }
+
+    private function kreiranLot(): Lot
+    {
+        $sorta = Sorta::factory()->create();
+        $parcela = Parcela::factory()->create();
+
+        return app(LotService::class)->kreiraj(
+            $this->podaci($sorta, $parcela, '2026-07-01')
+        );
+    }
+
+    private function ocekujOdbijenPrijem(
+        Lot $lot,
+        SkladisnaLokacija $lokacija,
+        string $poruka
+    ): void {
+        try {
+            app(LotService::class)->primiUSkladiste($lot, $lokacija);
+            $this->fail('Očekivan je izuzetak za nedozvoljen prijem lota.');
+        } catch (DomainException $exception) {
+            $this->assertSame($poruka, $exception->getMessage());
+        }
+
+        $this->assertDatabaseMissing('lot_dogadjajs', [
+            'lot_id' => $lot->id,
+            'tip' => LotDogadjajTip::PRIJEM_U_SKLADISTE->value,
+        ]);
     }
 }
