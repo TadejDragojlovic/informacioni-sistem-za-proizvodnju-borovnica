@@ -413,6 +413,78 @@ class LotService
         });
     }
 
+    public function korigujKolicinu(
+        Lot $lot,
+        int $novaRaspolozivaKolicinaG,
+        string $razlog,
+        ?User $evidentirao = null
+    ): Lot {
+        $razlog = $this->normalizujObavezanRazlog($razlog);
+
+        if ($novaRaspolozivaKolicinaG < 0) {
+            throw new InvalidArgumentException('Raspoloživa količina ne može biti negativna.');
+        }
+
+        return DB::transaction(function () use ($lot, $novaRaspolozivaKolicinaG, $razlog, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+            $dozvoljeniStatusi = [
+                LotStatus::USKLADISTEN,
+                LotStatus::RASPOLOZIV,
+                LotStatus::BLOKIRAN,
+                LotStatus::ISCRPLJEN,
+            ];
+
+            if (! in_array($zakljucanLot->status, $dozvoljeniStatusi, true)) {
+                throw new DomainException('Količinu lota u trenutnom statusu nije moguće korigovati.');
+            }
+
+            if ($novaRaspolozivaKolicinaG === $zakljucanLot->raspoloziva_kolicina_g) {
+                throw new DomainException('Nova raspoloživa količina mora se razlikovati od trenutne.');
+            }
+
+            $maksimalnaKolicina = $this->maksimalnaRaspolozivaKolicina($zakljucanLot);
+
+            if ($novaRaspolozivaKolicinaG > $maksimalnaKolicina) {
+                throw new DomainException("Raspoloživa količina ne može biti veća od {$maksimalnaKolicina} g.");
+            }
+
+            $prethodniStatus = $zakljucanLot->status;
+            $noviStatus = $prethodniStatus;
+
+            if ($novaRaspolozivaKolicinaG === 0) {
+                $noviStatus = LotStatus::ISCRPLJEN;
+            } elseif ($prethodniStatus === LotStatus::ISCRPLJEN) {
+                $noviStatus = $this->statusPreIscrpljenja($zakljucanLot);
+
+                if ($noviStatus === LotStatus::RASPOLOZIV) {
+                    if ($zakljucanLot->klasa_kvaliteta === null || $zakljucanLot->broj_dokumenta_kvaliteta === null) {
+                        throw new DomainException('Lot nema podatke o kvalitetu potrebne za status RASPOLOZIV.');
+                    }
+
+                    $this->proveriAktivnuTrenutnuLokaciju($zakljucanLot);
+                }
+            }
+
+            $razlika = $novaRaspolozivaKolicinaG - $zakljucanLot->raspoloziva_kolicina_g;
+            $zakljucanLot->update([
+                'raspoloziva_kolicina_g' => $novaRaspolozivaKolicinaG,
+                'status' => $noviStatus,
+            ]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::KOREKCIJA_KOLICINE,
+                'kolicina_g' => $razlika,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => $prethodniStatus,
+                'novi_status' => $noviStatus,
+                'razlog' => $razlog,
+            ]);
+
+            return $zakljucanLot->load(['raspodele', 'dogadjaji']);
+        });
+    }
+
     private function normalizujObavezanRazlog(string $razlog): string
     {
         $razlog = trim($razlog);
@@ -440,5 +512,56 @@ class LotService
         if (! $lokacija->aktivna || ! $skladiste->aktivan) {
             throw new DomainException('Lot mora biti na aktivnoj lokaciji u aktivnom skladištu.');
         }
+    }
+
+    private function maksimalnaRaspolozivaKolicina(Lot $lot): int
+    {
+        $raspodele = LotRaspodela::query()
+            ->where('lot_id', $lot->id)
+            ->whereIn('status', [
+                LotRaspodelaStatus::REZERVISANO->value,
+                LotRaspodelaStatus::IZDATO->value,
+            ])
+            ->lockForUpdate()
+            ->get();
+        $stavke = NarudzbinaStavka::query()
+            ->whereIn('id', $raspodele->pluck('narudzbina_stavka_id'))
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+
+        $angazovanaKolicina = $raspodele->sum(function (LotRaspodela $raspodela) use ($stavke): int {
+            $stavka = $stavke->get($raspodela->narudzbina_stavka_id);
+
+            if ($stavka === null) {
+                throw new DomainException('Nije moguće utvrditi angažovanu količinu lota.');
+            }
+
+            return $raspodela->broj_pakovanja * $stavka->neto_kolicina_g;
+        });
+
+        return max(0, $lot->pocetna_kolicina_g - $angazovanaKolicina);
+    }
+
+    private function statusPreIscrpljenja(Lot $lot): LotStatus
+    {
+        $dogadjaj = LotDogadjaj::query()
+            ->where('lot_id', $lot->id)
+            ->where('novi_status', LotStatus::ISCRPLJEN->value)
+            ->latest('vreme_dogadjaja')
+            ->latest('id')
+            ->lockForUpdate()
+            ->first();
+        $prethodniStatus = $dogadjaj?->prethodni_status;
+
+        if (! in_array($prethodniStatus, [
+            LotStatus::USKLADISTEN,
+            LotStatus::RASPOLOZIV,
+            LotStatus::BLOKIRAN,
+        ], true)) {
+            throw new DomainException('Status lota pre iscrpljenja nije moguće pouzdano utvrditi.');
+        }
+
+        return $prethodniStatus;
     }
 }
