@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 
 class LotOznakaGenerator
 {
+    /** Generiše sledeću jedinstvenu oznaku lota u formatu BL-GODINA-RB za godinu berbe. */
     public function generisi(CarbonInterface $datumBerbe): string
     {
         $godina = $datumBerbe->year;

@@ -20,7 +20,10 @@ use Illuminate\Support\Facades\DB;
 
 class NarudzbinaService
 {
-    /** @return Collection<int, LotRaspodela> */
+    /** FIFO redosledom rezerviše cela pakovanja iz odgovarajućih lotova i evidentira svaku raspodelu i promenu zalihe.
+     *
+     * @return Collection<int, LotRaspodela>
+     */
     public function rezervisiFifo(NarudzbinaStavka $stavka, ?User $evidentirao = null): Collection
     {
         return DB::transaction(function () use ($stavka, $evidentirao): Collection {
@@ -146,6 +149,7 @@ class NarudzbinaService
         });
     }
 
+    /** Otprema potpuno rezervisanu potvrđenu narudžbinu, označava raspodele kao izdate i beleži izdavanje lotova. */
     public function otpremi(Narudzbina $narudzbina, ?User $evidentirao = null): Narudzbina
     {
         return DB::transaction(function () use ($narudzbina, $evidentirao): Narudzbina {
@@ -239,6 +243,7 @@ class NarudzbinaService
         });
     }
 
+    /** Otkazuje potvrđenu neizdatu narudžbinu, oslobađa rezervacije i vraća raspoložive količine lotovima. */
     public function otkazi(
         Narudzbina $narudzbina,
         string $razlog,

@@ -24,6 +24,7 @@ class LotService
         private readonly LotOznakaGenerator $oznakaGenerator
     ) {}
 
+    /** Kreira lot sa početnom količinom i statusom KREIRAN, generiše oznaku i beleži početni događaj. */
     public function kreiraj(array $podaci, ?User $evidentirao = null): Lot
     {
         $pocetnaKolicina = (int) ($podaci['pocetna_kolicina_g'] ?? 0);
@@ -63,6 +64,7 @@ class LotService
         });
     }
 
+    /** Prima kreirani lot na aktivnu skladišnu lokaciju, postavlja status USKLADISTEN i beleži prijem. */
     public function primiUSkladiste(
         Lot $lot,
         SkladisnaLokacija $skladisnaLokacija,
@@ -110,6 +112,7 @@ class LotService
         });
     }
 
+    /** Dodeljuje uskladištenom lotu klasu i dokument kvaliteta i evidentira tu promenu. */
     public function dodeliKlasuKvaliteta(
         Lot $lot,
         KlasaKvaliteta $klasaKvaliteta,
@@ -156,6 +159,7 @@ class LotService
         });
     }
 
+    /** Odobrava za prodaju uskladišten lot sa validnim kvalitetom, količinom i aktivnom lokacijom. */
     public function odobriZaProdaju(Lot $lot, ?User $evidentirao = null): Lot
     {
         return DB::transaction(function () use ($lot, $evidentirao): Lot {
@@ -204,6 +208,7 @@ class LotService
         });
     }
 
+    /** Premešta lot dozvoljenog statusa na drugu aktivnu lokaciju i beleži trag premeštanja. */
     public function premesti(
         Lot $lot,
         SkladisnaLokacija $novaLokacija,
@@ -264,6 +269,7 @@ class LotService
         });
     }
 
+    /** Blokira uskladišten ili raspoloživ lot uz obavezan razlog i beleži prethodni status. */
     public function blokiraj(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
     {
         $razlog = $this->normalizujObavezanRazlog($razlog);
@@ -292,6 +298,7 @@ class LotService
         });
     }
 
+    /** Odblokira lot vraćanjem pouzdano utvrđenog prethodnog statusa kada su njegovi uslovi i dalje ispunjeni. */
     public function odblokiraj(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
     {
         $razlog = $this->normalizujObavezanRazlog($razlog);
@@ -344,6 +351,7 @@ class LotService
         });
     }
 
+    /** Povlači lot, otkazuje njegove aktivne rezervacije, uklanja ga sa lokacije i beleži sledljivost. */
     public function povuci(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
     {
         $razlog = $this->normalizujObavezanRazlog($razlog);
@@ -413,6 +421,7 @@ class LotService
         });
     }
 
+    /** Korigovanjem raspoložive količine poštuje angažovane zalihe, a po potrebi menja status i beleži razliku. */
     public function korigujKolicinu(
         Lot $lot,
         int $novaRaspolozivaKolicinaG,
