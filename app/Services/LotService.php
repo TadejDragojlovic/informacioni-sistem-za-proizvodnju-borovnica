@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\KlasaKvaliteta;
 use App\Enums\LotDogadjajTip;
 use App\Enums\LotStatus;
 use App\Models\Lot;
@@ -98,6 +99,100 @@ class LotService
                 'novi_status' => LotStatus::USKLADISTEN,
                 'prethodna_skladisna_lokacija_id' => null,
                 'nova_skladisna_lokacija_id' => $zakljucanaLokacija->id,
+                'razlog' => null,
+            ]);
+
+            return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
+        });
+    }
+
+    public function dodeliKlasuKvaliteta(
+        Lot $lot,
+        KlasaKvaliteta $klasaKvaliteta,
+        string $brojDokumenta,
+        ?User $evidentirao = null
+    ): Lot {
+        $brojDokumenta = trim($brojDokumenta);
+
+        if ($brojDokumenta === '') {
+            throw new InvalidArgumentException('Broj dokumenta kvaliteta je obavezan.');
+        }
+
+        if (mb_strlen($brojDokumenta) > 255) {
+            throw new InvalidArgumentException('Broj dokumenta kvaliteta može imati najviše 255 znakova.');
+        }
+
+        return DB::transaction(function () use ($lot, $klasaKvaliteta, $brojDokumenta, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+
+            if ($zakljucanLot->status !== LotStatus::USKLADISTEN) {
+                throw new DomainException('Klasa kvaliteta može biti dodeljena samo uskladištenom lotu.');
+            }
+
+            if ($zakljucanLot->klasa_kvaliteta !== null || $zakljucanLot->broj_dokumenta_kvaliteta !== null) {
+                throw new DomainException('Lot već ima dodeljenu klasu kvaliteta.');
+            }
+
+            $zakljucanLot->update([
+                'klasa_kvaliteta' => $klasaKvaliteta,
+                'broj_dokumenta_kvaliteta' => $brojDokumenta,
+            ]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::KLASA_KVALITETA_DODELJENA,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => null,
+                'novi_status' => null,
+                'razlog' => "Klasa: {$klasaKvaliteta->value}; dokument: {$brojDokumenta}",
+            ]);
+
+            return $zakljucanLot->load('dogadjaji');
+        });
+    }
+
+    public function odobriZaProdaju(Lot $lot, ?User $evidentirao = null): Lot
+    {
+        return DB::transaction(function () use ($lot, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+
+            if ($zakljucanLot->status !== LotStatus::USKLADISTEN) {
+                throw new DomainException('Samo uskladišten lot može biti odobren za prodaju.');
+            }
+
+            if ($zakljucanLot->trenutna_skladisna_lokacija_id === null) {
+                throw new DomainException('Lot mora imati trenutnu skladišnu lokaciju.');
+            }
+
+            $skladisnaLokacija = SkladisnaLokacija::query()
+                ->lockForUpdate()
+                ->findOrFail($zakljucanLot->trenutna_skladisna_lokacija_id);
+            $skladiste = Skladiste::query()
+                ->lockForUpdate()
+                ->findOrFail($skladisnaLokacija->skladiste_id);
+
+            if (! $skladisnaLokacija->aktivna || ! $skladiste->aktivan) {
+                throw new DomainException('Lot mora biti na aktivnoj lokaciji u aktivnom skladištu.');
+            }
+
+            if ($zakljucanLot->klasa_kvaliteta === null || $zakljucanLot->broj_dokumenta_kvaliteta === null) {
+                throw new DomainException('Lot mora imati dodeljenu klasu i dokument kvaliteta.');
+            }
+
+            if ($zakljucanLot->raspoloziva_kolicina_g <= 0) {
+                throw new DomainException('Lot bez raspoložive količine ne može biti odobren za prodaju.');
+            }
+
+            $zakljucanLot->update(['status' => LotStatus::RASPOLOZIV]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::ODOBREN_ZA_PRODAJU,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => LotStatus::USKLADISTEN,
+                'novi_status' => LotStatus::RASPOLOZIV,
                 'razlog' => null,
             ]);
 

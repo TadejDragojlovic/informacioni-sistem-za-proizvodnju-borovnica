@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\KlasaKvaliteta;
 use App\Enums\LotDogadjajTip;
 use App\Enums\LotStatus;
 use App\Enums\UserRole;
@@ -174,6 +175,152 @@ class LotServiceTest extends TestCase
         );
     }
 
+    #[Test]
+    public function dodeljuje_klasu_i_dokument_kvaliteta_uskladistenom_lotu(): void
+    {
+        Carbon::setTestNow('2026-07-01 12:00:00');
+        $zaposleni = User::factory()->create(['role' => UserRole::ZAPOSLENI]);
+        $lot = $this->uskladistenLot();
+
+        $ocenjenLot = app(LotService::class)->dodeliKlasuKvaliteta(
+            $lot,
+            KlasaKvaliteta::KLASA_I,
+            'KD-2026-101',
+            $zaposleni
+        );
+
+        $this->assertSame(KlasaKvaliteta::KLASA_I, $ocenjenLot->klasa_kvaliteta);
+        $this->assertSame('KD-2026-101', $ocenjenLot->broj_dokumenta_kvaliteta);
+        $this->assertSame(LotStatus::USKLADISTEN, $ocenjenLot->status);
+
+        $dogadjaj = $ocenjenLot->dogadjaji
+            ->firstWhere('tip', LotDogadjajTip::KLASA_KVALITETA_DODELJENA);
+
+        $this->assertNotNull($dogadjaj);
+        $this->assertSame($zaposleni->id, $dogadjaj->evidentirao_user_id);
+        $this->assertSame('Klasa: klasa_i; dokument: KD-2026-101', $dogadjaj->razlog);
+        $this->assertTrue($dogadjaj->vreme_dogadjaja->equalTo(now()));
+    }
+
+    #[Test]
+    public function odbija_dodelu_kvaliteta_lotu_koji_nije_uskladisten(): void
+    {
+        $lot = $this->kreiranLot();
+
+        $this->ocekujDomainException(
+            fn () => app(LotService::class)->dodeliKlasuKvaliteta(
+                $lot,
+                KlasaKvaliteta::KLASA_I,
+                'KD-2026-102'
+            ),
+            'Klasa kvaliteta može biti dodeljena samo uskladištenom lotu.'
+        );
+
+        $this->assertNull($lot->fresh()->klasa_kvaliteta);
+    }
+
+    #[Test]
+    public function ne_dozvoljava_ponovnu_dodelu_kvaliteta(): void
+    {
+        $lot = $this->uskladistenLot();
+        $servis = app(LotService::class);
+        $servis->dodeliKlasuKvaliteta($lot, KlasaKvaliteta::KLASA_I, 'KD-2026-103');
+
+        $this->ocekujDomainException(
+            fn () => $servis->dodeliKlasuKvaliteta(
+                $lot,
+                KlasaKvaliteta::KLASA_II,
+                'KD-2026-104'
+            ),
+            'Lot već ima dodeljenu klasu kvaliteta.'
+        );
+
+        $this->assertDatabaseCount('lot_dogadjajs', 3);
+        $this->assertSame(KlasaKvaliteta::KLASA_I, $lot->fresh()->klasa_kvaliteta);
+    }
+
+    #[Test]
+    public function zahteva_broj_dokumenta_prilikom_dodele_kvaliteta(): void
+    {
+        $lot = $this->uskladistenLot();
+
+        try {
+            app(LotService::class)->dodeliKlasuKvaliteta(
+                $lot,
+                KlasaKvaliteta::KLASA_I,
+                '   '
+            );
+            $this->fail('Očekivan je izuzetak za prazan broj dokumenta.');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertSame('Broj dokumenta kvaliteta je obavezan.', $exception->getMessage());
+        }
+
+        $this->assertNull($lot->fresh()->klasa_kvaliteta);
+    }
+
+    #[Test]
+    public function odobrava_za_prodaju_uskladisten_lot_sa_dodeljenim_kvalitetom(): void
+    {
+        Carbon::setTestNow('2026-07-01 14:00:00');
+        $zaposleni = User::factory()->create(['role' => UserRole::ZAPOSLENI]);
+        $servis = app(LotService::class);
+        $lot = $this->uskladistenLot();
+        $servis->dodeliKlasuKvaliteta($lot, KlasaKvaliteta::KLASA_I, 'KD-2026-105');
+
+        $odobrenLot = $servis->odobriZaProdaju($lot, $zaposleni);
+
+        $this->assertSame(LotStatus::RASPOLOZIV, $odobrenLot->status);
+        $dogadjaj = $odobrenLot->dogadjaji
+            ->firstWhere('tip', LotDogadjajTip::ODOBREN_ZA_PRODAJU);
+
+        $this->assertNotNull($dogadjaj);
+        $this->assertSame(LotStatus::USKLADISTEN, $dogadjaj->prethodni_status);
+        $this->assertSame(LotStatus::RASPOLOZIV, $dogadjaj->novi_status);
+        $this->assertSame($zaposleni->id, $dogadjaj->evidentirao_user_id);
+        $this->assertTrue($dogadjaj->vreme_dogadjaja->equalTo(now()));
+    }
+
+    #[Test]
+    public function odbija_odobrenje_za_prodaju_bez_dodeljenog_kvaliteta(): void
+    {
+        $lot = $this->uskladistenLot();
+
+        $this->ocekujDomainException(
+            fn () => app(LotService::class)->odobriZaProdaju($lot),
+            'Lot mora imati dodeljenu klasu i dokument kvaliteta.'
+        );
+
+        $this->assertSame(LotStatus::USKLADISTEN, $lot->fresh()->status);
+    }
+
+    #[Test]
+    public function odbija_odobrenje_za_prodaju_na_neaktivnoj_lokaciji(): void
+    {
+        $servis = app(LotService::class);
+        $lot = $this->uskladistenLot();
+        $servis->dodeliKlasuKvaliteta($lot, KlasaKvaliteta::KLASA_I, 'KD-2026-106');
+        $lot->trenutnaSkladisnaLokacija()->update(['aktivna' => false]);
+
+        $this->ocekujDomainException(
+            fn () => $servis->odobriZaProdaju($lot),
+            'Lot mora biti na aktivnoj lokaciji u aktivnom skladištu.'
+        );
+    }
+
+    #[Test]
+    public function odbija_odobrenje_lota_bez_raspolozive_kolicine(): void
+    {
+        $servis = app(LotService::class);
+        $lot = $this->uskladistenLot();
+        $servis->dodeliKlasuKvaliteta($lot, KlasaKvaliteta::KLASA_I, 'KD-2026-107');
+        $lot->update(['raspoloziva_kolicina_g' => 0]);
+
+        $this->ocekujDomainException(
+            fn () => $servis->odobriZaProdaju($lot),
+            'Lot bez raspoložive količine ne može biti odobren za prodaju.'
+        );
+    }
+
     private function podaci(Sorta $sorta, Parcela $parcela, string $datumBerbe): array
     {
         return [
@@ -192,6 +339,24 @@ class LotServiceTest extends TestCase
         return app(LotService::class)->kreiraj(
             $this->podaci($sorta, $parcela, '2026-07-01')
         );
+    }
+
+    private function uskladistenLot(): Lot
+    {
+        $lot = $this->kreiranLot();
+        $lokacija = SkladisnaLokacija::factory()->create();
+
+        return app(LotService::class)->primiUSkladiste($lot, $lokacija);
+    }
+
+    private function ocekujDomainException(callable $operacija, string $poruka): void
+    {
+        try {
+            $operacija();
+            $this->fail('Očekivan je izuzetak zbog kršenja poslovnog pravila.');
+        } catch (DomainException $exception) {
+            $this->assertSame($poruka, $exception->getMessage());
+        }
     }
 
     private function ocekujOdbijenPrijem(
