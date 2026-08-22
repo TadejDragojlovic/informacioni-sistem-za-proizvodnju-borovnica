@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NarudzbinaStatus;
 use App\Models\Narudzbina;
 use App\Models\Resurs;
 use App\Models\Skladiste;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class FinansijeController extends Controller
 {
@@ -14,51 +16,52 @@ class FinansijeController extends Controller
         return '[ADMIN] Stranica za finansijski pregled';
     }
 
-    public function create()
+    public function create(): View
     {
-        $prva = Narudzbina::orderBy('datum_narudzbine', 'asc')->first();
-        $poslednja = Narudzbina::orderBy('datum_narudzbine', 'desc')->first();
+        $prva = Narudzbina::oldest()->first();
+        $poslednja = Narudzbina::latest()->first();
 
         return view('admin.finansije.create', compact('prva', 'poslednja'));
     }
 
-    public function generate(Request $request)
+    public function generate(Request $request): View
     {
-        $od = $request->input('datum_od');
-        $do = $request->input('datum_do');
+        $period = $request->validate([
+            'datum_od' => ['required', 'date'],
+            'datum_do' => ['required', 'date', 'after_or_equal:datum_od'],
+        ]);
+        $od = $period['datum_od'];
+        $do = $period['datum_do'];
 
-        $narudzbine = Narudzbina::with('stavke')
-            ->where('status', 'isporucena')
-            ->whereBetween('datum_narudzbine', [$od, $do])
+        $narudzbine = Narudzbina::with('stavke.raspodele.lot')
+            ->where('status', NarudzbinaStatus::OTPREMLJENA)
+            ->whereBetween('created_at', ["{$od} 00:00:00", "{$do} 23:59:59"])
             ->get();
 
         $brojNarudzbina = $narudzbine->count();
 
-        // racunanje prihoda za svaku stavku, tako sto mnozimo kolicinu proizvoda * cena proizvoda
         $ukupniPrihod = $narudzbine->sum(function ($narudzbina) {
             return $narudzbina->stavke->sum(function ($stavka) {
-                return $stavka->kolicina * $stavka->proizvod->cena;
+                return $stavka->kolicina * (float) $stavka->cena_po_jedinici;
             });
         });
 
-        // id prodatih proizvoda
-        $prodatiProizvodiIds = $narudzbine->flatMap(function ($n) {
-            return $n->stavke->pluck('proizvod_id');
-        })->unique();
+        $lotIds = $narudzbine
+            ->flatMap(fn ($narudzbina) => $narudzbina->stavke)
+            ->flatMap(fn ($stavka) => $stavka->raspodele)
+            ->pluck('lot_id')
+            ->unique();
 
-        // trosak skladista
-        $listaSkladista = Skladiste::whereHas('proizvods', function ($q) use ($prodatiProizvodiIds) {
-            $q->whereIn('id', $prodatiProizvodiIds);
+        $listaSkladista = Skladiste::whereHas('skladisneLokacije.lotovi', function ($query) use ($lotIds) {
+            $query->whereIn('lots.id', $lotIds);
         })->get();
-        $trosakSkladista = (float) $listaSkladista->sum('trosak');
+        $trosakSkladista = (float) $listaSkladista->sum('mesecni_trosak');
 
-        // trosak resursa
-        $listaResursa = Resurs::whereIn('proizvod_id', $prodatiProizvodiIds)->get();
+        $listaResursa = Resurs::whereIn('lot_id', $lotIds)->get();
         $ukupniTrosakResursa = $listaResursa->sum(function ($resurs) {
-            return $resurs->trosak * $resurs->kolicina;
+            return (float) $resurs->cena_po_jedinici * (float) $resurs->kolicina;
         });
 
-        // izracunavanje
         $ukupniRashod = $trosakSkladista + $ukupniTrosakResursa;
         $netoDobit = $ukupniPrihod - $ukupniRashod;
 
