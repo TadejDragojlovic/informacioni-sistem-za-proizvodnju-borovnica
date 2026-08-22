@@ -20,10 +20,12 @@ class ResurUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'naziv' => ['required', 'string'],
-            'kolicina' => ['required', 'numeric', 'between:-99999999.99,99999999.99'],
-            'trosak' => ['required', 'numeric', 'between:-9999999999.99,9999999999.99'],
-            'proizvod_id' => ['required', 'integer', 'exists:Proizvods,id'],
+            'lot_id' => ['required', 'integer', 'exists:lots,id'],
+            'naziv' => ['required', 'string', 'max:255'],
+            'kolicina' => ['required', 'numeric', 'gt:0', 'decimal:0,2'],
+            'jedinica_mere' => ['required', 'string', 'max:50'],
+            'cena_po_jedinici' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'datum_upotrebe' => ['required', 'date'],
         ];
     }
 }
