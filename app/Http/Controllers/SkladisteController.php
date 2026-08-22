@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SkladisteStoreRequest;
+use App\Http\Requests\SkladisteUpdateRequest;
 use App\Models\Skladiste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,44 +25,30 @@ class SkladisteController extends Controller
         return view('skladiste.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(SkladisteStoreRequest $request): RedirectResponse
     {
-        $valid = $request->validate([
-            'lokacija' => 'required|string',
-            'kapacitet' => 'required|numeric',
-            'temperatura' => 'required|numeric',
-            'trosak' => 'required|numeric',
-        ]);
-
-        Skladiste::create($valid);
+        Skladiste::create($request->validated());
 
         return redirect()->route('skladiste.index')->with('success', 'Skladište kreirano.');
     }
 
-    public function show(Request $request, Skladiste $skladiste): Response
+    public function show(Skladiste $skladiste): View
     {
         return view('skladiste.show', [
             'skladiste' => $skladiste,
         ]);
     }
 
-    public function edit(Request $request, Skladiste $skladiste): View
+    public function edit(Skladiste $skladiste): View
     {
         return view('skladiste.edit', [
             'skladiste' => $skladiste,
         ]);
     }
 
-    public function update(Request $request, $id): RedirectResponse
+    public function update(SkladisteUpdateRequest $request, $id): RedirectResponse
     {
-        $valid = $request->validate([
-            'lokacija' => 'required|string',
-            'kapacitet' => 'required|numeric',
-            'temperatura' => 'required|numeric',
-            'trosak' => 'required|numeric',
-        ]);
-
-        Skladiste::findOrFail($id)->update($valid);
+        Skladiste::findOrFail($id)->update($request->validated());
 
         return redirect()->route('skladiste.index')->with('success', 'Skladište ažurirano.');
     }

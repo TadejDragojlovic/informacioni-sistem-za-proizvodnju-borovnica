@@ -20,10 +20,10 @@ class SkladisteStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'lokacija' => ['required', 'string'],
-            'kapacitet' => ['required', 'integer'],
-            'temperatura' => ['required', 'numeric', 'between:-999.99,999.99'],
-            'trosak' => ['required', 'numeric', 'between:-9999999999.99,9999999999.99'],
+            'naziv' => ['required', 'string', 'max:255'],
+            'lokacija' => ['required', 'string', 'max:255'],
+            'mesecni_trosak' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'aktivan' => ['required', 'boolean'],
         ];
     }
 }
