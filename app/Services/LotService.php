@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Enums\KlasaKvaliteta;
 use App\Enums\LotDogadjajTip;
+use App\Enums\LotRaspodelaStatus;
 use App\Enums\LotStatus;
 use App\Models\Lot;
 use App\Models\LotDogadjaj;
+use App\Models\LotRaspodela;
+use App\Models\NarudzbinaStavka;
 use App\Models\SkladisnaLokacija;
 use App\Models\Skladiste;
 use App\Models\User;
@@ -338,6 +341,75 @@ class LotService
             ]);
 
             return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
+        });
+    }
+
+    public function povuci(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
+    {
+        $razlog = $this->normalizujObavezanRazlog($razlog);
+
+        return DB::transaction(function () use ($lot, $razlog, $evidentirao): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+
+            if ($zakljucanLot->status === LotStatus::POVUCEN) {
+                throw new DomainException('Lot je već povučen.');
+            }
+
+            $rezervisaneRaspodele = LotRaspodela::query()
+                ->where('lot_id', $zakljucanLot->id)
+                ->where('status', LotRaspodelaStatus::REZERVISANO)
+                ->lockForUpdate()
+                ->get();
+            $stavke = NarudzbinaStavka::query()
+                ->whereIn('id', $rezervisaneRaspodele->pluck('narudzbina_stavka_id'))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($rezervisaneRaspodele as $raspodela) {
+                $stavka = $stavke->get($raspodela->narudzbina_stavka_id);
+
+                if ($stavka === null) {
+                    throw new DomainException('Nije moguće utvrditi količinu aktivne rezervacije.');
+                }
+
+                $rezervisanaKolicina = $raspodela->broj_pakovanja * $stavka->neto_kolicina_g;
+                $raspodela->update(['status' => LotRaspodelaStatus::OTKAZANO]);
+
+                $zakljucanLot->dogadjaji()->create([
+                    'lot_raspodela_id' => $raspodela->id,
+                    'tip' => LotDogadjajTip::REZERVACIJA_OSLOBODJENA,
+                    'kolicina_g' => -$rezervisanaKolicina,
+                    'vreme_dogadjaja' => now(),
+                    'evidentirao_user_id' => $evidentirao?->id,
+                    'prethodni_status' => null,
+                    'novi_status' => null,
+                    'razlog' => 'Rezervacija otkazana zbog povlačenja lota.',
+                ]);
+            }
+
+            $prethodniStatus = $zakljucanLot->status;
+            $prethodnaLokacijaId = $zakljucanLot->trenutna_skladisna_lokacija_id;
+
+            $zakljucanLot->update([
+                'raspoloziva_kolicina_g' => 0,
+                'trenutna_skladisna_lokacija_id' => null,
+                'status' => LotStatus::POVUCEN,
+            ]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::LOT_POVUCEN,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => $prethodniStatus,
+                'novi_status' => LotStatus::POVUCEN,
+                'prethodna_skladisna_lokacija_id' => $prethodnaLokacijaId,
+                'nova_skladisna_lokacija_id' => null,
+                'razlog' => $razlog,
+            ]);
+
+            return $zakljucanLot->load(['raspodele', 'dogadjaji']);
         });
     }
 
