@@ -145,4 +145,97 @@ class NarudzbinaService
             return $raspodele;
         });
     }
+
+    public function otpremi(Narudzbina $narudzbina, ?User $evidentirao = null): Narudzbina
+    {
+        return DB::transaction(function () use ($narudzbina, $evidentirao): Narudzbina {
+            $zakljucanaNarudzbina = Narudzbina::query()
+                ->lockForUpdate()
+                ->findOrFail($narudzbina->id);
+
+            if ($zakljucanaNarudzbina->status !== NarudzbinaStatus::POTVRDJENA) {
+                throw new DomainException('Samo potvrđena narudžbina može biti otpremljena.');
+            }
+
+            $stavke = NarudzbinaStavka::query()
+                ->where('narudzbina_id', $zakljucanaNarudzbina->id)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            if ($stavke->isEmpty()) {
+                throw new DomainException('Narudžbina bez stavki ne može biti otpremljena.');
+            }
+
+            $raspodele = LotRaspodela::query()
+                ->whereIn('narudzbina_stavka_id', $stavke->pluck('id'))
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($stavke as $stavka) {
+                $rezervisanoPakovanja = $raspodele
+                    ->where('narudzbina_stavka_id', $stavka->id)
+                    ->where('status', LotRaspodelaStatus::REZERVISANO)
+                    ->sum('broj_pakovanja');
+
+                if ($rezervisanoPakovanja !== $stavka->kolicina) {
+                    throw new DomainException('Sve stavke moraju biti potpuno rezervisane pre otpreme.');
+                }
+            }
+
+            $rezervisaneRaspodele = $raspodele
+                ->where('status', LotRaspodelaStatus::REZERVISANO);
+            $lotovi = Lot::query()
+                ->whereIn('id', $rezervisaneRaspodele->pluck('lot_id'))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+            $lokacije = SkladisnaLokacija::query()
+                ->whereIn('id', $lotovi->pluck('trenutna_skladisna_lokacija_id'))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+            $skladista = Skladiste::query()
+                ->whereIn('id', $lokacije->pluck('skladiste_id'))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($rezervisaneRaspodele as $raspodela) {
+                $lot = $lotovi->get($raspodela->lot_id);
+                $stavka = $stavke->firstWhere('id', $raspodela->narudzbina_stavka_id);
+
+                if ($lot === null || $stavka === null) {
+                    throw new DomainException('Nije moguće utvrditi lot ili stavku za izdavanje.');
+                }
+
+                if (! in_array($lot->status, [LotStatus::RASPOLOZIV, LotStatus::ISCRPLJEN], true)) {
+                    throw new DomainException('Blokiran, povučen ili neuskladišten lot ne može biti izdat.');
+                }
+
+                $lokacija = $lokacije->get($lot->trenutna_skladisna_lokacija_id);
+                $skladiste = $lokacija === null ? null : $skladista->get($lokacija->skladiste_id);
+
+                if ($lokacija?->aktivna !== true || $skladiste?->aktivan !== true) {
+                    throw new DomainException('Lot za izdavanje mora biti na aktivnoj lokaciji u aktivnom skladištu.');
+                }
+
+                $raspodela->update(['status' => LotRaspodelaStatus::IZDATO]);
+                $lot->dogadjaji()->create([
+                    'lot_raspodela_id' => $raspodela->id,
+                    'tip' => LotDogadjajTip::KOLICINA_IZDATA,
+                    'kolicina_g' => $raspodela->broj_pakovanja * $stavka->neto_kolicina_g,
+                    'vreme_dogadjaja' => now(),
+                    'evidentirao_user_id' => $evidentirao?->id,
+                    'prethodni_status' => $lot->status,
+                    'novi_status' => $lot->status,
+                    'razlog' => null,
+                ]);
+            }
+
+            $zakljucanaNarudzbina->update(['status' => NarudzbinaStatus::OTPREMLJENA]);
+
+            return $zakljucanaNarudzbina->load('stavke.raspodele');
+        });
+    }
 }
