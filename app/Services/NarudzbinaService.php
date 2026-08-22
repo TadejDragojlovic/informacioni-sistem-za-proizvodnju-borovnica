@@ -238,4 +238,94 @@ class NarudzbinaService
             return $zakljucanaNarudzbina->load('stavke.raspodele');
         });
     }
+
+    public function otkazi(
+        Narudzbina $narudzbina,
+        string $razlog,
+        ?User $evidentirao = null
+    ): Narudzbina {
+        $razlog = trim($razlog);
+
+        if ($razlog === '') {
+            throw new DomainException('Razlog otkazivanja narudžbine je obavezan.');
+        }
+
+        return DB::transaction(function () use ($narudzbina, $razlog, $evidentirao): Narudzbina {
+            $zakljucanaNarudzbina = Narudzbina::query()
+                ->lockForUpdate()
+                ->findOrFail($narudzbina->id);
+
+            if ($zakljucanaNarudzbina->status !== NarudzbinaStatus::POTVRDJENA) {
+                throw new DomainException('Samo potvrđena narudžbina može biti otkazana.');
+            }
+
+            $stavke = NarudzbinaStavka::query()
+                ->where('narudzbina_id', $zakljucanaNarudzbina->id)
+                ->lockForUpdate()
+                ->get();
+            $raspodele = LotRaspodela::query()
+                ->whereIn('narudzbina_stavka_id', $stavke->pluck('id'))
+                ->lockForUpdate()
+                ->get();
+
+            if ($raspodele->contains('status', LotRaspodelaStatus::IZDATO)) {
+                throw new DomainException('Narudžbina sa izdatom količinom ne može biti otkazana.');
+            }
+
+            $rezervisaneRaspodele = $raspodele
+                ->where('status', LotRaspodelaStatus::REZERVISANO);
+            $lotovi = Lot::query()
+                ->whereIn('id', $rezervisaneRaspodele->pluck('lot_id'))
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+            $stavkePoId = $stavke->keyBy('id');
+
+            foreach ($rezervisaneRaspodele as $raspodela) {
+                $lot = $lotovi->get($raspodela->lot_id);
+                $stavka = $stavkePoId->get($raspodela->narudzbina_stavka_id);
+
+                if ($lot === null || $stavka === null) {
+                    throw new DomainException('Nije moguće utvrditi lot ili stavku rezervacije.');
+                }
+
+                if ($lot->status === LotStatus::POVUCEN) {
+                    throw new DomainException('Rezervaciju povučenog lota nije moguće osloboditi ovim tokom.');
+                }
+
+                $oslobodjenaKolicinaG = $raspodela->broj_pakovanja * $stavka->neto_kolicina_g;
+                $novaKolicinaG = $lot->raspoloziva_kolicina_g + $oslobodjenaKolicinaG;
+
+                if ($novaKolicinaG > $lot->pocetna_kolicina_g) {
+                    throw new DomainException('Oslobađanje rezervacije bi prekoračilo početnu količinu lota.');
+                }
+
+                $prethodniStatus = $lot->status;
+                $noviStatus = $prethodniStatus === LotStatus::ISCRPLJEN
+                    ? LotStatus::RASPOLOZIV
+                    : $prethodniStatus;
+
+                $lot->update([
+                    'raspoloziva_kolicina_g' => $novaKolicinaG,
+                    'status' => $noviStatus,
+                ]);
+                $raspodela->update(['status' => LotRaspodelaStatus::OTKAZANO]);
+
+                $lot->dogadjaji()->create([
+                    'lot_raspodela_id' => $raspodela->id,
+                    'tip' => LotDogadjajTip::REZERVACIJA_OSLOBODJENA,
+                    'kolicina_g' => -$oslobodjenaKolicinaG,
+                    'vreme_dogadjaja' => now(),
+                    'evidentirao_user_id' => $evidentirao?->id,
+                    'prethodni_status' => $prethodniStatus,
+                    'novi_status' => $noviStatus,
+                    'razlog' => $razlog,
+                ]);
+            }
+
+            $zakljucanaNarudzbina->update(['status' => NarudzbinaStatus::OTKAZANA]);
+
+            return $zakljucanaNarudzbina->load('stavke.raspodele');
+        });
+    }
 }
