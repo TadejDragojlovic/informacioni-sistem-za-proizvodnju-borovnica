@@ -2,19 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Enums\LotRaspodelaStatus;
+use App\Enums\LotStatus;
+use App\Enums\NarudzbinaStatus;
 use App\Enums\UserRole;
+use App\Models\Lot;
+use App\Models\LotRaspodela;
 use App\Models\Narudzbina;
+use App\Models\NarudzbinaStavka;
 use App\Models\Proizvod;
 use App\Models\Resurs;
+use App\Models\SkladisnaLokacija;
 use App\Models\Skladiste;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[Group('legacy-schema')]
 class FinansijskiIzvestajTest extends TestCase
 {
     use RefreshDatabase;
@@ -26,46 +31,53 @@ class FinansijskiIzvestajTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
         $danas = Carbon::create(2026, 1, 1);
 
-        // trosak: 3000
-        $skladiste = Skladiste::create([
-            'lokacija' => 'Valjevo',
-            'kapacitet' => 2000,
-            'temperatura' => -5,
-            'trosak' => 3000,
+        $skladiste = Skladiste::factory()->create([
+            'mesecni_trosak' => 3000,
         ]);
-
-        $proizvod = Proizvod::create([
-            'naziv' => 'Borovnica Premium',
-            'cena' => 1200,
-            'kolicina' => 100,
+        $skladisnaLokacija = SkladisnaLokacija::factory()->create([
             'skladiste_id' => $skladiste->id,
         ]);
-
-        // trosak ukupno => 20 * 10 = 200
-        Resurs::create([
-            'naziv' => 'Navodnjavanje',
-            'trosak' => 20,
-            'kolicina' => 10,
-            'proizvod_id' => $proizvod->id,
+        $proizvod = Proizvod::factory()->create([
+            'naziv' => 'Borovnica Premium',
+            'neto_kolicina_g' => 500,
+            'cena' => 1200,
+        ]);
+        $lot = Lot::factory()->create([
+            'sorta_id' => $proizvod->sorta_id,
+            'trenutna_skladisna_lokacija_id' => $skladisnaLokacija->id,
+            'status' => LotStatus::RASPOLOZIV,
         ]);
 
-        $narudzbina = Narudzbina::create([
+        $narudzbina = Narudzbina::factory()->create([
             'user_id' => User::factory()->create()->id,
-            'datum_narudzbine' => $danas,
-            'status' => 'isporucena',
+            'status' => NarudzbinaStatus::OTPREMLJENA,
+            'created_at' => $danas,
+            'updated_at' => $danas,
         ]);
-
-        // 2 * 1200 = 2400 (prihod)
-        $narudzbina->stavke()->create([
+        $stavka = NarudzbinaStavka::factory()->create([
+            'narudzbina_id' => $narudzbina->id,
             'proizvod_id' => $proizvod->id,
             'kolicina' => 2,
-            'cena' => 1200,
+            'neto_kolicina_g' => 500,
+            'cena_po_jedinici' => 1200,
+        ]);
+        LotRaspodela::factory()->create([
+            'lot_id' => $lot->id,
+            'narudzbina_stavka_id' => $stavka->id,
+            'broj_pakovanja' => 2,
+            'status' => LotRaspodelaStatus::IZDATO,
+        ]);
+        Resurs::factory()->create([
+            'lot_id' => $lot->id,
+            'naziv' => 'Navodnjavanje',
+            'kolicina' => 10,
+            'cena_po_jedinici' => 20,
         ]);
 
         // generisemo izvestaj samo za danas
         $response = $this->actingAs($admin)->post(route('admin.finansije.generate'), [
-            'datum_od' => $danas,
-            'datum_do' => $danas,
+            'datum_od' => $danas->toDateString(),
+            'datum_do' => $danas->toDateString(),
         ]);
 
         $response->assertStatus(200);

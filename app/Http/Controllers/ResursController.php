@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Proizvod;
+use App\Http\Requests\ResurStoreRequest;
+use App\Http\Requests\ResurUpdateRequest;
+use App\Models\Lot;
 use App\Models\Resurs;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,7 +14,7 @@ class ResursController extends Controller
 {
     public function index(Request $request): View
     {
-        $resursi = Resurs::all();
+        $resursi = Resurs::with(['lot', 'evidentiraoUser'])->get();
 
         return view('resurs.index', [
             'resursi' => $resursi,
@@ -21,50 +23,38 @@ class ResursController extends Controller
 
     public function create(Request $request): View
     {
-        $proizvodi = Proizvod::all();
+        $lotovi = Lot::orderBy('oznaka')->get();
 
-        return view('resurs.create', compact('proizvodi'));
+        return view('resurs.create', compact('lotovi'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(ResurStoreRequest $request): RedirectResponse
     {
-        $valid = $request->validate([
-            'naziv' => 'required|string',
-            'kolicina' => 'required|numeric',
-            'trosak' => 'required|numeric',
-            'proizvod_id' => 'required|exists:proizvods,id',
-        ]);
-
-        Resurs::create($valid);
+        Resurs::create(array_merge($request->validated(), [
+            'evidentirao_user_id' => $request->user()->id,
+        ]));
 
         return redirect()->route('resurs.index');
     }
 
-    public function show(Request $request, Resurs $resurs): Response
+    public function show(Resurs $resurs): View
     {
         return view('resurs.show', [
             'resurs' => $resurs,
         ]);
     }
 
-    public function edit(Request $request, Resurs $resur): View
+    public function edit(Resurs $resur): View
     {
-        $proizvodi = Proizvod::all();
+        $lotovi = Lot::orderBy('oznaka')->get();
 
-        return view('resurs.edit', compact('resur', 'proizvodi'));
+        return view('resurs.edit', compact('resur', 'lotovi'));
     }
 
-    public function update(Request $request, $id): RedirectResponse
+    public function update(ResurUpdateRequest $request, $id): RedirectResponse
     {
-        $valid = $request->validate([
-            'naziv' => 'required|string',
-            'kolicina' => 'required|numeric',
-            'trosak' => 'required|numeric',
-            'proizvod_id' => 'required|exists:proizvods,id',
-        ]);
-
         $resurs = Resurs::findOrFail($id);
-        $resurs->update($valid);
+        $resurs->update($request->validated());
 
         return redirect()->route('resurs.index')->with('success', 'Resurs uspesno izmenjen.');
     }

@@ -2,36 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NarudzbinaStatus;
+use App\Http\Requests\NarudzbinaStoreRequest;
+use App\Http\Requests\NarudzbinaUpdateRequest;
 use App\Models\Narudzbina;
 use App\Models\Proizvod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class NarudzbinaController extends Controller
 {
     public function index(Request $request): View
     {
-        $narudzbinas = Narudzbina::all();
+        $narudzbinas = Narudzbina::with('user')->latest()->get();
 
         return view('narudzbina.index', [
             'narudzbine' => $narudzbinas,
         ]);
     }
 
-    public function create(Request $request): Response
+    public function create(): View
     {
         return view('narudzbina.create');
     }
 
-    public function store(Request $request): Response
+    public function store(NarudzbinaStoreRequest $request): RedirectResponse
     {
         $narudzbina = Narudzbina::create($request->validated());
 
         $request->session()->flash('narudzbina.id', $narudzbina->id);
 
-        return redirect()->route('narudzbinas.index');
+        return redirect()->route('narudzbine.index');
     }
 
     public function show($id): View
@@ -41,10 +44,13 @@ class NarudzbinaController extends Controller
         return view('narudzbina.show', compact('narudzbina'));
     }
 
-    public function edit(Request $request, $id): View
+    public function edit($id): View
     {
         $narudzbina = Narudzbina::findOrFail($id);
-        $statusi = ['kreirana', 'potvrdjena', 'u_obradi', 'otpremljena', 'isporucena', 'otkazana', 'vracena'];
+        $statusi = array_map(
+            fn (NarudzbinaStatus $status) => $status->value,
+            NarudzbinaStatus::cases()
+        );
 
         return view('narudzbina.edit', [
             'narudzbina' => $narudzbina,
@@ -52,14 +58,10 @@ class NarudzbinaController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id): RedirectResponse
+    public function update(NarudzbinaUpdateRequest $request, $id): RedirectResponse
     {
-        $valid = $request->validate([
-            'status' => 'required|string',
-        ]);
-
         $narudzbina = Narudzbina::findOrFail($id);
-        $narudzbina->update($valid);
+        $narudzbina->update($request->validated());
 
         return redirect()->route('narudzbine.index')->with('success', 'Status uspesno izmenjen.');
     }
@@ -67,7 +69,7 @@ class NarudzbinaController extends Controller
     public function destroy($id): RedirectResponse
     {
         $narudzbina = Narudzbina::findOrFail($id);
-        $narudzbina->delete();
+        $narudzbina->update(['status' => NarudzbinaStatus::OTKAZANA]);
 
         return redirect()->route('narudzbine.index');
     }
@@ -76,13 +78,14 @@ class NarudzbinaController extends Controller
     {
         $narudzbine = Narudzbina::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
+            ->with('stavke')
             ->get();
 
         return view('narudzbina.moje', compact('narudzbine'));
     }
 
     // potvrdjivanje narudzbine / korpe
-    public function potvrdi(Request $request)
+    public function potvrdi(Request $request): RedirectResponse
     {
         $korpa = session()->get('korpa');
 
@@ -90,26 +93,28 @@ class NarudzbinaController extends Controller
             return redirect()->back();
         }
 
-        // kreiranje narudzbine
-        $narudzbina = Narudzbina::create([
-            'datum_narudzbine' => Carbon::today()->toDateString(),
-            'user_id' => auth()->id(),
-            'status' => 'kreirana',
+        $validirano = $request->validate([
+            'adresa_isporuke' => ['required', 'string', 'max:255'],
         ]);
 
-        // stavka narudzbine
-        foreach ($korpa as $proizvod_id => $detalji) {
-            $narudzbina->stavke()->create([
-                'proizvod_id' => $proizvod_id,
-                'kolicina' => $detalji['kolicina'],
+        DB::transaction(function () use ($korpa, $validirano): void {
+            $narudzbina = Narudzbina::create([
+                'user_id' => auth()->id(),
+                'status' => NarudzbinaStatus::POTVRDJENA,
+                'adresa_isporuke' => $validirano['adresa_isporuke'],
             ]);
 
-            // skidanje zaliha
-            $proizvod = Proizvod::find($proizvod_id);
-            if ($proizvod) {
-                $proizvod->decrement('kolicina', $detalji['kolicina']);
+            foreach ($korpa as $proizvodId => $detalji) {
+                $proizvod = Proizvod::findOrFail($proizvodId);
+
+                $narudzbina->stavke()->create([
+                    'proizvod_id' => $proizvod->id,
+                    'kolicina' => $detalji['kolicina'],
+                    'neto_kolicina_g' => $proizvod->neto_kolicina_g,
+                    'cena_po_jedinici' => $proizvod->cena,
+                ]);
             }
-        }
+        });
 
         session()->forget('korpa');
 

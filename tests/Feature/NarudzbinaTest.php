@@ -2,16 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Enums\NarudzbinaStatus;
 use App\Enums\UserRole;
 use App\Models\Proizvod;
-use App\Models\Skladiste;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[Group('legacy-schema')]
 class NarudzbinaTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,37 +18,40 @@ class NarudzbinaTest extends TestCase
     public function test_korisnik_moze_kreirati_narudzbinu()
     {
         $user = User::factory()->create(['role' => UserRole::KUPAC->value]);
-        $skladiste = Skladiste::create(['lokacija' => 'Valjevo', 'kapacitet' => 1500, 'temperatura' => -10, 'trosak' => 12000]);
-        $proizvod = Proizvod::create([
-            'naziv' => 'Proizvod1',
-            'cena' => 100,
-            'kolicina' => 10,
-            'skladiste_id' => $skladiste->id,
+        $proizvod = Proizvod::factory()->create([
+            'naziv' => 'Borovnice 500 g',
+            'neto_kolicina_g' => 500,
+            'cena' => 800,
         ]);
 
         // simulacija korpe
         $korpa = [
-            $proizvod->id => ['naziv' => 'Proizvod1', 'kolicina' => 1, 'cena' => 100],
+            $proizvod->id => ['naziv' => $proizvod->naziv, 'kolicina' => 2, 'cena' => 800],
         ];
 
         // potvrdjivanje narudzbine
         $response = $this->actingAs($user)
             ->withSession(['korpa' => $korpa])
-            ->post(route('narudzbine.potvrdi'));
+            ->post(route('narudzbine.potvrdi'), [
+                'adresa_isporuke' => 'Kralja Petra 10, Valjevo',
+            ]);
 
         // narudzbina postoji u bazi
         $this->assertDatabaseHas('narudzbinas', [
             'user_id' => $user->id,
-            'status' => 'kreirana',
+            'status' => NarudzbinaStatus::POTVRDJENA->value,
+            'adresa_isporuke' => 'Kralja Petra 10, Valjevo',
         ]);
 
         // stavka postoji u bazi
         $this->assertDatabaseHas('narudzbina_stavkas', [
             'proizvod_id' => $proizvod->id,
-            'kolicina' => 1,
+            'kolicina' => 2,
+            'neto_kolicina_g' => 500,
+            'cena_po_jedinici' => 800,
         ]);
 
-        // zaliha se uspesno izmenila
-        $this->assertEquals(9, $proizvod->fresh()->kolicina);
+        $response->assertRedirect(route('user.orders'));
+        $this->assertFalse(session()->has('korpa'));
     }
 }
