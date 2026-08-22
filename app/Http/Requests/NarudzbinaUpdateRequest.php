@@ -23,6 +23,12 @@ class NarudzbinaUpdateRequest extends FormRequest
     {
         return [
             'status' => ['required', Rule::enum(NarudzbinaStatus::class)],
+            'razlog' => [
+                'required_if:status,'.NarudzbinaStatus::OTKAZANA->value,
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ];
     }
 }

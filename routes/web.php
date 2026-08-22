@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 use App\Http\Controllers\FinansijeController;
 use App\Http\Controllers\KorpaController;
+use App\Http\Controllers\LotController;
 use App\Http\Controllers\NarudzbinaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProizvodController;
@@ -46,6 +47,23 @@ Route::middleware([
     Route::resource('skladiste', SkladisteController::class);
     Route::resource('resurs', ResursController::class);
     Route::resource('narudzbine', NarudzbinaController::class);
+
+    Route::post('/lotovi', [LotController::class, 'store'])->name('lotovi.store');
+    Route::patch('/lotovi/{lot}/prijem', [LotController::class, 'primiUSkladiste'])->name('lotovi.prijem');
+    Route::patch('/lotovi/{lot}/kvalitet', [LotController::class, 'dodeliKlasuKvaliteta'])->name('lotovi.kvalitet');
+    Route::patch('/lotovi/{lot}/odobrenje-prodaje', [LotController::class, 'odobriZaProdaju'])->name('lotovi.odobrenje-prodaje');
+    Route::patch('/lotovi/{lot}/premestanje', [LotController::class, 'premesti'])->name('lotovi.premestanje');
+    Route::patch('/lotovi/{lot}/blokiranje', [LotController::class, 'blokiraj'])->name('lotovi.blokiranje');
+    Route::patch('/lotovi/{lot}/odblokiranje', [LotController::class, 'odblokiraj'])->name('lotovi.odblokiranje');
+    Route::patch('/lotovi/{lot}/povlacenje', [LotController::class, 'povuci'])->name('lotovi.povlacenje');
+    Route::patch('/lotovi/{lot}/korekcija-kolicine', [LotController::class, 'korigujKolicinu'])->name('lotovi.korekcija-kolicine');
+
+    Route::post('/narudzbine/stavke/{stavka}/fifo-rezervacija', [NarudzbinaController::class, 'rezervisiFifo'])
+        ->name('narudzbine.stavke.fifo-rezervacija');
+    Route::patch('/narudzbine/{narudzbina}/otprema', [NarudzbinaController::class, 'otpremi'])
+        ->name('narudzbine.otprema');
+    Route::patch('/narudzbine/{narudzbina}/otkazivanje', [NarudzbinaController::class, 'otkazi'])
+        ->name('narudzbine.otkazivanje');
 });
 
 // samo admin rute
