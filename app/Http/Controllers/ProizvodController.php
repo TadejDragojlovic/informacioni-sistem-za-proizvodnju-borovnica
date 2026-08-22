@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProizvodStoreRequest;
+use App\Http\Requests\ProizvodUpdateRequest;
 use App\Models\Proizvod;
-use App\Models\Skladiste;
+use App\Models\Sorta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -28,53 +30,37 @@ class ProizvodController extends Controller
 
     public function create(Request $request): View
     {
-        $skladista = Skladiste::all();
+        $sorte = Sorta::orderBy('naziv')->get();
 
-        return view('proizvod.create', compact('skladista'));
+        return view('proizvod.create', compact('sorte'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(ProizvodStoreRequest $request): RedirectResponse
     {
-        $valid = $request->validate([
-            'naziv' => 'required|string|max:255',
-            'opis' => 'nullable|string',
-            'kolicina' => 'required|numeric|min:0',
-            'cena' => 'required|numeric|min:0',
-            'skladiste_id' => 'required|exists:skladistes,id',
-        ]);
-
-        Proizvod::create($valid);
+        Proizvod::create($request->validated());
 
         return redirect()->route('proizvod.index')->with('success', 'Proizvod dodat.');
     }
 
-    public function show(Request $request, Proizvod $proizvod): Response
+    public function show(Proizvod $proizvod): View
     {
         return view('proizvod.show', [
             'proizvod' => $proizvod,
         ]);
     }
 
-    public function edit(Request $request, $id): View
+    public function edit($id): View
     {
         $proizvod = Proizvod::findOrFail($id);
-        $skladista = Skladiste::all();
+        $sorte = Sorta::orderBy('naziv')->get();
 
-        return view('proizvod.edit', compact('proizvod', 'skladista'));
+        return view('proizvod.edit', compact('proizvod', 'sorte'));
     }
 
-    public function update(Request $request, $id): RedirectResponse
+    public function update(ProizvodUpdateRequest $request, $id): RedirectResponse
     {
-        $valid = $request->validate([
-            'naziv' => 'required|string|max:255',
-            'opis' => 'nullable|string',
-            'kolicina' => 'required|numeric|min:0',
-            'cena' => 'required|numeric|min:0',
-            'skladiste_id' => 'required|exists:skladistes,id',
-        ]);
-
         $proizvod = Proizvod::findOrFail($id);
-        $proizvod->update($valid);
+        $proizvod->update($request->validated());
 
         return redirect()->route('proizvod.index')->with('success', 'Proizvod ažuriran.');
     }

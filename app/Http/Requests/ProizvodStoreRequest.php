@@ -20,11 +20,12 @@ class ProizvodStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'naziv' => ['required', 'string', 'max:100'],
+            'naziv' => ['required', 'string', 'max:255'],
             'opis' => ['nullable', 'string'],
-            'kolicina' => ['required', 'integer'],
-            'cena' => ['required', 'numeric', 'between:-99999999.99,99999999.99'],
-            'skladiste_id' => ['required', 'integer', 'exists:Skladistes,id'],
+            'sorta_id' => ['required', 'integer', 'exists:sortas,id'],
+            'neto_kolicina_g' => ['required', 'integer', 'min:1'],
+            'cena' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'aktivan' => ['required', 'boolean'],
         ];
     }
 }
