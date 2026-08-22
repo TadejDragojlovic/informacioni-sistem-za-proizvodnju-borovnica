@@ -199,4 +199,64 @@ class LotService
             return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
         });
     }
+
+    public function premesti(
+        Lot $lot,
+        SkladisnaLokacija $novaLokacija,
+        ?User $evidentirao = null,
+        ?string $razlog = null
+    ): Lot {
+        return DB::transaction(function () use ($lot, $novaLokacija, $evidentirao, $razlog): Lot {
+            $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
+            $dozvoljeniStatusi = [
+                LotStatus::USKLADISTEN,
+                LotStatus::RASPOLOZIV,
+                LotStatus::BLOKIRAN,
+            ];
+
+            if (! in_array($zakljucanLot->status, $dozvoljeniStatusi, true)) {
+                throw new DomainException('Lot u trenutnom statusu nije moguće premestiti.');
+            }
+
+            if ($zakljucanLot->trenutna_skladisna_lokacija_id === null) {
+                throw new DomainException('Lot nema trenutnu skladišnu lokaciju.');
+            }
+
+            if ($zakljucanLot->trenutna_skladisna_lokacija_id === $novaLokacija->id) {
+                throw new DomainException('Nova lokacija mora biti različita od trenutne lokacije lota.');
+            }
+
+            $prethodnaLokacija = SkladisnaLokacija::query()
+                ->lockForUpdate()
+                ->findOrFail($zakljucanLot->trenutna_skladisna_lokacija_id);
+            $zakljucanaNovaLokacija = SkladisnaLokacija::query()
+                ->lockForUpdate()
+                ->findOrFail($novaLokacija->id);
+            $novoSkladiste = Skladiste::query()
+                ->lockForUpdate()
+                ->findOrFail($zakljucanaNovaLokacija->skladiste_id);
+
+            if (! $zakljucanaNovaLokacija->aktivna || ! $novoSkladiste->aktivan) {
+                throw new DomainException('Ciljna lokacija i njeno skladište moraju biti aktivni.');
+            }
+
+            $zakljucanLot->update([
+                'trenutna_skladisna_lokacija_id' => $zakljucanaNovaLokacija->id,
+            ]);
+
+            $zakljucanLot->dogadjaji()->create([
+                'tip' => LotDogadjajTip::PREMESTANJE,
+                'kolicina_g' => null,
+                'vreme_dogadjaja' => now(),
+                'evidentirao_user_id' => $evidentirao?->id,
+                'prethodni_status' => null,
+                'novi_status' => null,
+                'prethodna_skladisna_lokacija_id' => $prethodnaLokacija->id,
+                'nova_skladisna_lokacija_id' => $zakljucanaNovaLokacija->id,
+                'razlog' => $razlog,
+            ]);
+
+            return $zakljucanLot->load(['trenutnaSkladisnaLokacija', 'dogadjaji']);
+        });
+    }
 }
