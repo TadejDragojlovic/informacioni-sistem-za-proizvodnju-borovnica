@@ -66,4 +66,53 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: php artisan test --exclude-group=legacy-schema
+        run: php artisan test --exclude-group=legacy-schema --exclude-group=mysql-concurrency
+
+  mysql-concurrency:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: borovnice_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: borovnice_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout koda
+        uses: actions/checkout@v4
+
+      - name: Podesavanje PHP-a
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, pdo_mysql, pcntl
+          coverage: none
+
+      - name: Instalacija composer paketa
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Priprema Laravel okruzenja
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate:fresh --force
+
+      - name: Konkurentna FIFO rezervacija na MySQL-u
+        run: php artisan test --group=mysql-concurrency
