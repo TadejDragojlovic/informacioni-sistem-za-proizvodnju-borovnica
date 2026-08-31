@@ -1,125 +1,124 @@
 @php
-use App\Enums\UserRole;
+    use App\Enums\UserRole;
+
+    $user = auth()->user();
+    $navigationItems = [
+        ['label' => 'Početna', 'route' => 'home', 'active' => 'home'],
+    ];
+
+    if ($user?->role === UserRole::KUPAC) {
+        $navigationItems[] = ['label' => 'Moje narudžbine', 'route' => 'user.orders', 'active' => 'user.orders'];
+        $navigationItems[] = ['label' => 'Korpa', 'route' => 'korpa.index', 'active' => 'korpa.*'];
+    }
+
+    if (in_array($user?->role, [UserRole::ADMIN, UserRole::ZAPOSLENI], true)) {
+        $navigationItems[] = ['label' => 'Proizvodi', 'route' => 'proizvod.index', 'active' => 'proizvod.*'];
+        $navigationItems[] = ['label' => 'Skladišta', 'route' => 'skladiste.index', 'active' => 'skladiste.*'];
+        $navigationItems[] = ['label' => 'Resursi', 'route' => 'resurs.index', 'active' => 'resurs.*'];
+        $navigationItems[] = ['label' => 'Narudžbine', 'route' => 'narudzbine.index', 'active' => 'narudzbine.*'];
+    }
+
+    if ($user?->role === UserRole::ADMIN) {
+        $navigationItems[] = ['label' => 'Finansije', 'route' => 'admin.finansije.create', 'active' => 'admin.finansije.*'];
+    }
 @endphp
 
-<nav x-data="{ open: false }" class="bg-borovnica-dark border-b border-borovnica-accent">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center text-white font-bold italic">
-                    <img src="{{ asset('images/logo.png') }}" class="w-14 h-14 m-5" alt="Logo">
+<nav x-data="{ open: false }" class="border-b border-borovnica-accent bg-borovnica-dark text-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 justify-between">
+            <div class="flex min-w-0">
+                <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2 font-bold italic focus:outline-none focus:ring-2 focus:ring-borovnica-soft focus:ring-offset-2 focus:ring-offset-borovnica-dark">
+                    <img src="{{ asset('images/logo.png') }}" class="h-12 w-12" alt="Logo sistema Borovnica">
+                    <span class="hidden text-lg sm:inline">Borovnica sistem</span>
+                </a>
 
-                    Borovnica sistem
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Početna') }}
-                    </x-nav-link>
-
-                    @auth
-                    @if(Auth::user()->role === UserRole::KUPAC)
-                    <x-nav-link :href="route('user.orders')" :active="request()->routeIs('user.orders')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Moje Narudžbine') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('korpa.index')" :active="request()->routeIs('korpa.index')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Korpa') }}
-                    </x-nav-link>
-                    @endif
-
-                    @if(Auth::user()->role === UserRole::ADMIN || Auth::user()->role === UserRole::ZAPOSLENI)
-                    <!-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
-                            class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                                {{ __('Dashboard') }}
-                            </x-nav-link> -->
-                    <x-nav-link :href="route('proizvod.index')" :active="request()->routeIs('proizvod.index')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Upravljanje Proizvodima') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('skladiste.index')" :active="request()->routeIs('skladiste.index')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Skladišta') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('resurs.index')" :active="request()->routeIs('resurs.index')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Resursi') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('narudzbine.index')" :active="request()->routeIs('narudzbine.index')"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Sve Narudžbine') }}
-                    </x-nav-link>
-                    @endif
-
-                    @if(Auth::user()->role === UserRole::ADMIN)
-                    <x-nav-link :href="route('admin.finansije.create')" :active="request()->routeIs('admin.finansije')" class="text-red-600 font-bold"
-                        class="text-white hover:text-borovnica-soft focus:text-white border-transparent hover:border-borovnica-soft transition duration-150 ease-in-out">
-                        {{ __('Finansije') }}
-                    </x-nav-link>
-                    @endif
-                    @endauth
+                <div class="hidden items-stretch gap-5 lg:ms-8 lg:flex">
+                    @foreach ($navigationItems as $item)
+                        <x-nav-link :href="route($item['route'])" :active="request()->routeIs($item['active'])">
+                            {{ $item['label'] }}
+                        </x-nav-link>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden items-center lg:ms-6 lg:flex">
                 @auth
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <x-dropdown align="right" width="48" content-classes="py-1 bg-borovnica-soft">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center gap-1 rounded-md border border-borovnica-soft/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-borovnica-accent focus:outline-none focus:ring-2 focus:ring-borovnica-soft">
+                                <span>{{ $user->name }}</span>
+                                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
-                            </div>
-                        </button>
-                    </x-slot>
+                            </button>
+                        </x-slot>
 
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                                    this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
+                        <x-slot name="content">
+                            <x-dropdown-link :href="route('profile.edit')">Profil</x-dropdown-link>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                                    Odjava
+                                </x-dropdown-link>
+                            </form>
+                        </x-slot>
+                    </x-dropdown>
                 @else
-                @if (Route::has('login'))
-                <div class="space-x-4">
-                    <a href="{{ route('login') }}" class="text-white hover:text-borovnica-soft font-medium">Prijava</a>
-                    @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="text-white hover:text-borovnica-soft font-medium">Registracija</a>
-                    @endif
-                </div>
-                @endif
+                    <div class="flex items-center gap-4 text-sm font-medium">
+                        <a href="{{ route('login') }}" class="transition hover:text-borovnica-soft">Prijava</a>
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}" class="rounded-full border border-borovnica-soft px-4 py-2 transition hover:bg-borovnica-accent">Registracija</a>
+                        @endif
+                    </div>
                 @endauth
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <div class="flex items-center lg:hidden">
+                <button
+                    type="button"
+                    @click="open = ! open"
+                    :aria-expanded="open"
+                    aria-controls="mobile-navigation"
+                    class="inline-flex items-center justify-center rounded-md p-2 text-borovnica-soft transition hover:bg-borovnica-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-borovnica-soft"
+                >
+                    <span class="sr-only">Otvori glavni meni</span>
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="mobile-navigation" x-show="open" x-cloak class="border-t border-borovnica-accent lg:hidden">
+        <div class="space-y-1 py-2">
+            @foreach ($navigationItems as $item)
+                <x-responsive-nav-link :href="route($item['route'])" :active="request()->routeIs($item['active'])">
+                    {{ $item['label'] }}
+                </x-responsive-nav-link>
+            @endforeach
+        </div>
+
+        <div class="border-t border-borovnica-accent px-4 py-3">
+            @auth
+                <div class="mb-2">
+                    <div class="font-semibold">{{ $user->name }}</div>
+                    <div class="text-sm text-borovnica-soft">{{ $user->email }}</div>
+                </div>
+                <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')">Profil</x-responsive-nav-link>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                        Odjava
+                    </x-responsive-nav-link>
+                </form>
+            @else
+                <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">Prijava</x-responsive-nav-link>
+                @if (Route::has('register'))
+                    <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')">Registracija</x-responsive-nav-link>
+                @endif
+            @endauth
         </div>
     </div>
 </nav>

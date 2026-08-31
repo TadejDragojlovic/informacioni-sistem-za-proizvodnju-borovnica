@@ -14,38 +14,37 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+    <body class="bg-borovnica-light font-sans text-borovnica-dark antialiased">
+        <div class="min-h-screen bg-borovnica-light">
             @include('layouts.navigation')
 
-            <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="border-b border-borovnica-dark/10 bg-borovnica-table shadow">
+                    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
             @endisset
 
-            <!-- Page Content -->
             <main>
                 {{ $slot }}
             </main>
         </div>
+
         @if(session('success'))
-        <div id="toast" class="fixed bottom-5 right-5 z-50 animate-bounce">
-            <div class="bg-borovnica-dark text-white px-6 py-3 rounded-sm shadow-2xl border-b-4 border-borovnica-accent font-bold italic">
+        <div
+            x-data="{ show: true }"
+            x-init="setTimeout(() => show = false, 3000)"
+            x-show="show"
+            x-transition
+            class="fixed inset-x-4 bottom-5 z-50 sm:left-auto sm:right-5"
+            role="status"
+            aria-live="polite"
+        >
+            <div class="rounded-sm border-b-4 border-borovnica-accent bg-borovnica-dark px-6 py-3 font-bold italic text-white shadow-2xl">
                 🫐 {{ session('success') }}
             </div>
         </div>
-
-        <script>
-            // Automatski ukloni poruku nakon 3 sekunde
-            setTimeout(() => {
-                const toast = document.getElementById('toast');
-                if(toast) toast.style.display = 'none';
-            }, 3000);
-        </script>
         @endif
     </body>
 </html>
