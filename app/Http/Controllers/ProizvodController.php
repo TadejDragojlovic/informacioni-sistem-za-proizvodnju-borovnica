@@ -14,14 +14,21 @@ class ProizvodController extends Controller
 {
     public function pocetna(): View
     {
-        $proizvodi = Proizvod::all();
+        $proizvodi = Proizvod::query()
+            ->where('aktivan', true)
+            ->orderBy('naziv')
+            ->get();
 
         return view('pocetna', compact('proizvodi'));
     }
 
     public function index(Request $request): View
     {
-        $proizvods = Proizvod::all();
+        $proizvods = Proizvod::query()
+            ->with('sorta')
+            ->orderByDesc('aktivan')
+            ->orderBy('naziv')
+            ->get();
 
         return view('proizvod.index', [
             'proizvodi' => $proizvods,
@@ -44,22 +51,22 @@ class ProizvodController extends Controller
 
     public function show(Proizvod $proizvod): View
     {
+        $proizvod->load('sorta');
+
         return view('proizvod.show', [
             'proizvod' => $proizvod,
         ]);
     }
 
-    public function edit($id): View
+    public function edit(Proizvod $proizvod): View
     {
-        $proizvod = Proizvod::findOrFail($id);
         $sorte = Sorta::orderBy('naziv')->get();
 
         return view('proizvod.edit', compact('proizvod', 'sorte'));
     }
 
-    public function update(ProizvodUpdateRequest $request, $id): RedirectResponse
+    public function update(ProizvodUpdateRequest $request, Proizvod $proizvod): RedirectResponse
     {
-        $proizvod = Proizvod::findOrFail($id);
         $proizvod->update($request->validated());
 
         return redirect()->route('proizvod.index')->with('success', 'Proizvod ažuriran.');
@@ -69,6 +76,6 @@ class ProizvodController extends Controller
     {
         $proizvod->delete();
 
-        return redirect()->route('proizvod.index');
+        return redirect()->route('proizvod.index')->with('success', 'Proizvod obrisan.');
     }
 }

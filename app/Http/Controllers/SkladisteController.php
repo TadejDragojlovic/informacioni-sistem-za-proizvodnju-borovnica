@@ -13,7 +13,11 @@ class SkladisteController extends Controller
 {
     public function index(Request $request): View
     {
-        $skladistes = Skladiste::all();
+        $skladistes = Skladiste::query()
+            ->withCount('skladisneLokacije')
+            ->orderByDesc('aktivan')
+            ->orderBy('naziv')
+            ->get();
 
         return view('skladiste.index', [
             'skladista' => $skladistes,
@@ -34,6 +38,13 @@ class SkladisteController extends Controller
 
     public function show(Skladiste $skladiste): View
     {
+        $skladiste->load([
+            'skladisneLokacije' => fn ($query) => $query
+                ->withCount('lotovi')
+                ->orderByDesc('aktivna')
+                ->orderBy('naziv'),
+        ]);
+
         return view('skladiste.show', [
             'skladiste' => $skladiste,
         ]);
@@ -46,9 +57,9 @@ class SkladisteController extends Controller
         ]);
     }
 
-    public function update(SkladisteUpdateRequest $request, $id): RedirectResponse
+    public function update(SkladisteUpdateRequest $request, Skladiste $skladiste): RedirectResponse
     {
-        Skladiste::findOrFail($id)->update($request->validated());
+        $skladiste->update($request->validated());
 
         return redirect()->route('skladiste.index')->with('success', 'Skladište ažurirano.');
     }
@@ -57,6 +68,6 @@ class SkladisteController extends Controller
     {
         $skladiste->delete();
 
-        return redirect()->route('skladiste.index');
+        return redirect()->route('skladiste.index')->with('success', 'Skladište obrisano.');
     }
 }
