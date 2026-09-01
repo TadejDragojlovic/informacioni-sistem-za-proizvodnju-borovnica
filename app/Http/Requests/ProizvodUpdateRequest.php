@@ -20,8 +20,8 @@ class ProizvodUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'naziv' => ['required', 'string', 'max:255'],
-            'opis' => ['nullable', 'string'],
+            'naziv' => ['required', 'string', 'max:100'],
+            'opis' => ['required', 'string'],
             'sorta_id' => ['required', 'integer', 'exists:sortas,id'],
             'neto_kolicina_g' => ['required', 'integer', 'min:1'],
             'cena' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
