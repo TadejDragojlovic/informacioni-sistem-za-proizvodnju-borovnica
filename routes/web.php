@@ -8,6 +8,7 @@ use App\Http\Controllers\NarudzbinaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProizvodController;
 use App\Http\Controllers\ResursController;
+use App\Http\Controllers\SkladisnaLokacijaController;
 use App\Http\Controllers\SkladisteController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,15 @@ Route::middleware([
     Route::resource('skladiste', SkladisteController::class);
     Route::resource('resurs', ResursController::class);
     Route::resource('narudzbine', NarudzbinaController::class);
+
+    Route::get('/skladiste/{skladiste}/lokacije/create', [SkladisnaLokacijaController::class, 'create'])
+        ->name('skladisne-lokacije.create');
+    Route::post('/skladiste/{skladiste}/lokacije', [SkladisnaLokacijaController::class, 'store'])
+        ->name('skladisne-lokacije.store');
+    Route::get('/skladiste/{skladiste}/lokacije/{skladisnaLokacija}/edit', [SkladisnaLokacijaController::class, 'edit'])
+        ->name('skladisne-lokacije.edit');
+    Route::put('/skladiste/{skladiste}/lokacije/{skladisnaLokacija}', [SkladisnaLokacijaController::class, 'update'])
+        ->name('skladisne-lokacije.update');
 
     Route::post('/lotovi', [LotController::class, 'store'])->name('lotovi.store');
     Route::patch('/lotovi/{lot}/prijem', [LotController::class, 'primiUSkladiste'])->name('lotovi.prijem');
