@@ -74,6 +74,11 @@ class FinansijskiIzvestajTest extends TestCase
             'cena_po_jedinici' => 20,
         ]);
 
+        $this->actingAs($admin)
+            ->get(route('admin.finansije.create'))
+            ->assertOk()
+            ->assertSee('2026-01-01', false);
+
         // generisemo izvestaj samo za danas
         $response = $this->actingAs($admin)->post(route('admin.finansije.generate'), [
             'datum_od' => $danas->toDateString(),
@@ -84,5 +89,7 @@ class FinansijskiIzvestajTest extends TestCase
         $response->assertViewHas('ukupniPrihod', 2400);
         $response->assertViewHas('ukupniRashod', 3200);
         $response->assertViewHas('netoDobit', -800);
+        $response->assertSee('3.000,00 RSD');
+        $response->assertSee('200,00 RSD');
     }
 }
