@@ -35,9 +35,16 @@ class LotControllerTest extends TestCase
                 'pocetna_kolicina_g' => 12000,
                 'napomena' => 'Kontrolni lot.',
             ])
+            ->assertRedirect(route('lotovi.index'))
             ->assertSessionHas('success');
 
         $lot = Lot::query()->sole();
+
+        $this->actingAs($zaposleni)
+            ->get(route('lotovi.show', $lot))
+            ->assertOk()
+            ->assertSee($lot->oznaka)
+            ->assertSee('Prijem u skladište');
 
         $this->actingAs($zaposleni)
             ->patch(route('lotovi.prijem', $lot), [
@@ -46,11 +53,21 @@ class LotControllerTest extends TestCase
             ->assertSessionHas('success');
 
         $this->actingAs($zaposleni)
+            ->get(route('lotovi.show', $lot))
+            ->assertOk()
+            ->assertSee('Dodela klase kvaliteta');
+
+        $this->actingAs($zaposleni)
             ->patch(route('lotovi.kvalitet', $lot), [
                 'klasa_kvaliteta' => KlasaKvaliteta::KLASA_I->value,
                 'broj_dokumenta_kvaliteta' => 'KVAL-HTTP-002',
             ])
             ->assertSessionHas('success');
+
+        $this->actingAs($zaposleni)
+            ->get(route('lotovi.show', $lot))
+            ->assertOk()
+            ->assertSee('Odobri za prodaju');
 
         $this->actingAs($zaposleni)
             ->patch(route('lotovi.odobrenje-prodaje', $lot))
@@ -70,5 +87,11 @@ class LotControllerTest extends TestCase
             ],
             $lot->dogadjaji()->pluck('tip')->all()
         );
+
+        $this->actingAs($zaposleni)
+            ->get(route('lotovi.show', $lot))
+            ->assertOk()
+            ->assertSee('Raspoloživ')
+            ->assertSee('Sledljivost lota');
     }
 }
