@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Proizvod;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class KorpaController extends Controller
@@ -20,20 +22,28 @@ class KorpaController extends Controller
         return view('korpa.index', compact('korpa', 'ukupno'));
     }
 
-    public function dodaj(Request $request, $id)
+    public function dodaj(Request $request, int $id): RedirectResponse
     {
-        $proizvod = Proizvod::findOrFail($id);
-        $korpa = session()->get('korpa', []);
+        $validirano = $request->validate([
+            'kolicina' => ['required', 'integer', 'min:1', 'max:100'],
+        ]);
+        $proizvod = Proizvod::query()->whereKey($id)->where('aktivan', true)->first();
 
-        $dodatakolicina = $request->input('kolicina', 1);
+        if ($proizvod === null) {
+            return redirect()->back()->withErrors(['korpa' => 'Izabrani proizvod više nije dostupan.']);
+        }
+
+        $korpa = session()->get('korpa', []);
+        $dodataKolicina = (int) $validirano['kolicina'];
 
         if (isset($korpa[$id])) {
-            $korpa[$id]['kolicina'] += $dodatakolicina;
+            $korpa[$id]['kolicina'] = min(100, $korpa[$id]['kolicina'] + $dodataKolicina);
         } else {
             $korpa[$id] = [
                 'naziv' => $proizvod->naziv,
-                'kolicina' => $dodatakolicina,
+                'kolicina' => $dodataKolicina,
                 'cena' => $proizvod->cena,
+                'neto_kolicina_g' => $proizvod->neto_kolicina_g,
             ];
         }
 
@@ -42,15 +52,18 @@ class KorpaController extends Controller
         return redirect()->back()->with('success', 'Dodato u korpu!');
     }
 
-    public function azuriraj(Request $request, $id)
+    public function azuriraj(Request $request, int $id): RedirectResponse
     {
-        $korpa = session()->get('korpa');
-        $akcija = $request->input('akcija');
+        $validirano = $request->validate([
+            'akcija' => ['required', Rule::in(['plus', 'minus'])],
+        ]);
+        $korpa = session()->get('korpa', []);
+        $akcija = $validirano['akcija'];
 
         if (isset($korpa[$id])) {
-            if ($akcija == 'plus') {
+            if ($akcija === 'plus' && $korpa[$id]['kolicina'] < 100) {
                 $korpa[$id]['kolicina']++;
-            } elseif ($akcija == 'minus' && $korpa[$id]['kolicina'] > 1) {
+            } elseif ($akcija === 'minus' && $korpa[$id]['kolicina'] > 1) {
                 $korpa[$id]['kolicina']--;
             }
             session()->put('korpa', $korpa);
@@ -59,9 +72,9 @@ class KorpaController extends Controller
         return redirect()->back();
     }
 
-    public function obrisi($id)
+    public function obrisi(int $id): RedirectResponse
     {
-        $korpa = session()->get('korpa');
+        $korpa = session()->get('korpa', []);
 
         if (isset($korpa[$id])) {
             unset($korpa[$id]);

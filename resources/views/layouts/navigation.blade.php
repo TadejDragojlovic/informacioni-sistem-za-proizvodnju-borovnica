@@ -7,7 +7,7 @@
     ];
 
     if ($user?->role === UserRole::KUPAC) {
-        $navigationItems[] = ['label' => 'Moje narudžbine', 'route' => 'user.orders', 'active' => 'user.orders'];
+        $navigationItems[] = ['label' => 'Moje narudžbine', 'route' => 'user.orders', 'active' => 'user.orders*'];
         $navigationItems[] = ['label' => 'Korpa', 'route' => 'korpa.index', 'active' => 'korpa.*'];
     }
 
