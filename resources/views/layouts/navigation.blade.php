@@ -14,6 +14,7 @@
     if (in_array($user?->role, [UserRole::ADMIN, UserRole::ZAPOSLENI], true)) {
         $navigationItems[] = ['label' => 'Proizvodi', 'route' => 'proizvod.index', 'active' => 'proizvod.*'];
         $navigationItems[] = ['label' => 'Skladišta', 'route' => 'skladiste.index', 'active' => 'skladiste.*'];
+        $navigationItems[] = ['label' => 'Lotovi', 'route' => 'lotovi.index', 'active' => 'lotovi.*'];
         $navigationItems[] = ['label' => 'Resursi', 'route' => 'resurs.index', 'active' => 'resurs.*'];
         $navigationItems[] = ['label' => 'Narudžbine', 'route' => 'narudzbine.index', 'active' => 'narudzbine.*'];
     }

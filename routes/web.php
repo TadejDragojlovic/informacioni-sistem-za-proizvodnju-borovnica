@@ -58,7 +58,10 @@ Route::middleware([
     Route::put('/skladiste/{skladiste}/lokacije/{skladisnaLokacija}', [SkladisnaLokacijaController::class, 'update'])
         ->name('skladisne-lokacije.update');
 
+    Route::get('/lotovi', [LotController::class, 'index'])->name('lotovi.index');
+    Route::get('/lotovi/create', [LotController::class, 'create'])->name('lotovi.create');
     Route::post('/lotovi', [LotController::class, 'store'])->name('lotovi.store');
+    Route::get('/lotovi/{lot}', [LotController::class, 'show'])->name('lotovi.show');
     Route::patch('/lotovi/{lot}/prijem', [LotController::class, 'primiUSkladiste'])->name('lotovi.prijem');
     Route::patch('/lotovi/{lot}/kvalitet', [LotController::class, 'dodeliKlasuKvaliteta'])->name('lotovi.kvalitet');
     Route::patch('/lotovi/{lot}/odobrenje-prodaje', [LotController::class, 'odobriZaProdaju'])->name('lotovi.odobrenje-prodaje');
