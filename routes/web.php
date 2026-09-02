@@ -30,6 +30,7 @@ Route::get('/', [ProizvodController::class, 'pocetna'])->name('home');
 // kupac rute
 Route::middleware(['auth', 'role:'.UserRole::KUPAC->value])->group(function () {
     Route::get('/moje-narudzbine', [NarudzbinaController::class, 'mojeNarudzbine'])->name('user.orders');
+    Route::get('/moje-narudzbine/{narudzbina}', [NarudzbinaController::class, 'mojaNarudzbina'])->name('user.orders.show');
     Route::post('/narudzbine/potvrdi', [NarudzbinaController::class, 'potvrdi'])->name('narudzbine.potvrdi');
 
     Route::get('/korpa', [KorpaController::class, 'index'])->name('korpa.index');
