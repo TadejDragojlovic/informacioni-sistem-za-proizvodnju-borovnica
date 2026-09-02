@@ -16,4 +16,22 @@ enum LotDogadjajTip: string
     case LOT_BLOKIRAN = 'lot_blokiran';
     case LOT_ODBLOKIRAN = 'lot_odblokiran';
     case LOT_POVUCEN = 'lot_povucen';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::LOT_KREIRAN => 'Lot kreiran',
+            self::PRIJEM_U_SKLADISTE => 'Prijem u skladište',
+            self::KLASA_KVALITETA_DODELJENA => 'Dodeljena klasa kvaliteta',
+            self::PREMESTANJE => 'Premeštanje lota',
+            self::ODOBREN_ZA_PRODAJU => 'Odobren za prodaju',
+            self::KOLICINA_REZERVISANA => 'Količina rezervisana',
+            self::REZERVACIJA_OSLOBODJENA => 'Rezervacija oslobođena',
+            self::KOLICINA_IZDATA => 'Količina izdata',
+            self::KOREKCIJA_KOLICINE => 'Korekcija količine',
+            self::LOT_BLOKIRAN => 'Lot blokiran',
+            self::LOT_ODBLOKIRAN => 'Lot odblokiran',
+            self::LOT_POVUCEN => 'Lot povučen',
+        };
+    }
 }
