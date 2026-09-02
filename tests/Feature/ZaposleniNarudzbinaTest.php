@@ -26,17 +26,26 @@ class ZaposleniNarudzbinaTest extends TestCase
     #[Test]
     public function zaposleni_rezervise_i_otprema_narudzbinu_preko_kontrolera(): void
     {
-        [$zaposleni, $narudzbina, $stavka] = $this->pripremiNarudzbinuZaRezervaciju();
+        [$zaposleni, $narudzbina, $stavka, $lot] = $this->pripremiNarudzbinuZaRezervaciju();
+
+        $this->actingAs($zaposleni)
+            ->get(route('narudzbine.show', $narudzbina))
+            ->assertOk()
+            ->assertSee('FIFO rezervacija');
 
         $this->actingAs($zaposleni)
             ->post(route('narudzbine.stavke.fifo-rezervacija', $stavka))
             ->assertSessionHas('success');
 
         $this->actingAs($zaposleni)
-            ->patch(route('narudzbine.update', $narudzbina), [
-                'status' => NarudzbinaStatus::OTPREMLJENA->value,
-            ])
-            ->assertRedirect(route('narudzbine.index'))
+            ->get(route('narudzbine.show', $narudzbina))
+            ->assertOk()
+            ->assertSee($lot->oznaka)
+            ->assertSee('Označi kao otpremljenu');
+
+        $this->actingAs($zaposleni)
+            ->patch(route('narudzbine.otprema', $narudzbina))
+            ->assertRedirect()
             ->assertSessionHas('success');
 
         $this->assertSame(NarudzbinaStatus::OTPREMLJENA, $narudzbina->fresh()->status);
