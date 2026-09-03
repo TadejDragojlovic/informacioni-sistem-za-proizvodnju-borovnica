@@ -49,7 +49,7 @@ Route::middleware([
     Route::resource('proizvod', ProizvodController::class);
     Route::resource('skladiste', SkladisteController::class);
     Route::resource('resurs', ResursController::class);
-    Route::resource('narudzbine', NarudzbinaController::class);
+    Route::resource('narudzbine', NarudzbinaController::class)->only(['index', 'show']);
 
     Route::get('/skladiste/{skladiste}/lokacije/create', [SkladisnaLokacijaController::class, 'create'])
         ->name('skladisne-lokacije.create');
