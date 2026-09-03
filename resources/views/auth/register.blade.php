@@ -1,65 +1,33 @@
-<!DOCTYPE html>
-<html lang="sr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registracija - HiFi Borovnica</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-[#A779A7] min-h-screen flex flex-col items-center justify-center font-sans m-0">
+<x-guest-layout>
+    <div class="mb-7 text-center">
+        <h1 class="text-3xl font-bold italic uppercase tracking-widest">Registracija</h1>
+        <p class="mt-2 text-sm">Registracijom se kreira korisnički nalog kupca.</p>
+    </div>
 
-    <div class="bg-[#E1C6C6] p-6 rounded-sm shadow-2xl w-full max-w-lg relative">
-        <div class="absolute -top-10 -left-10 p-2 rounded-full shadow-xl">
-             <img src="{{ asset('images/logo.png') }}" class="w-28 h-28" alt="Logo">
+    <form method="POST" action="{{ route('register') }}" class="space-y-5">
+        @csrf
+        <div>
+            <x-input-label for="name" value="Ime i prezime" />
+            <x-text-input id="name" class="mt-1 block w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+            <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
-        
-        <h1 class="text-[#6B446B] text-center text-5xl font-bold mb-10 tracking-tight">Registracija</h1>
+        <div>
+            <x-input-label for="email" value="E-mail adresa" />
+            <x-text-input id="email" class="mt-1 block w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        </div>
+        <div>
+            <x-input-label for="password" value="Lozinka" />
+            <x-text-input id="password" class="mt-1 block w-full" type="password" name="password" required autocomplete="new-password" />
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        </div>
+        <div>
+            <x-input-label for="password_confirmation" value="Potvrda lozinke" />
+            <x-text-input id="password_confirmation" class="mt-1 block w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        </div>
+        <x-primary-button class="w-full py-3">Registruj se</x-primary-button>
+    </form>
 
-        <form method="POST" action="{{ route('register') }}" class="space-y-6">
-            @csrf
-
-            <div class="flex items-center">
-                <label class="text-[#6B446B] font-bold w-40 text-right pr-4 text-xl">Ime:</label>
-                <input type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name"
-                       class="flex-1 rounded-md border-none shadow-inner h-10 px-3 focus:ring-2 focus:ring-[#6B446B]">
-            </div>
-            <x-input-error :messages="$errors->get('name')" class="mt-1 text-right text-xs" />
-
-            <div class="flex items-center">
-                <label class="text-[#6B446B] font-bold w-40 text-right pr-4 text-xl">Email:</label>
-                <input type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
-                       class="flex-1 rounded-md border-none shadow-inner h-10 px-3 focus:ring-2 focus:ring-[#6B446B]">
-            </div>
-            <x-input-error :messages="$errors->get('email')" class="mt-1 text-right text-xs" />
-
-            <div class="flex items-center">
-                <label class="text-[#6B446B] font-bold w-40 text-right pr-4 text-xl">Password:</label>
-                <input type="password" name="password" required autocomplete="new-password"
-                       class="flex-1 rounded-md border-none shadow-inner h-10 px-3 focus:ring-2 focus:ring-[#6B446B]">
-            </div>
-            <x-input-error :messages="$errors->get('password')" class="mt-1 text-right text-xs" />
-
-            <div class="flex items-center">
-                <label class="text-[#6B446B] font-bold w-40 text-right pr-4 text-xl leading-tight">Potvrda sifre:</label>
-                <input type="password" name="password_confirmation" required autocomplete="new-password"
-                       class="flex-1 rounded-md border-none shadow-inner h-10 px-3 focus:ring-2 focus:ring-[#6B446B]">
-            </div>
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 text-right text-xs" />
-
-            <div class="flex justify-center pt-8">
-                <button type="submit" class="bg-[#614261] text-white px-12 py-3 rounded-md font-bold hover:bg-[#4a324a] transition shadow-lg text-lg uppercase tracking-widest">
-                    Registruj se
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <div class="mt-8 text-center">
-        <p class="text-[#2D1B2D] text-2xl font-medium mb-4 italic">Ukoliko imate nalog</p>
-        <a href="{{ route('login') }}" class="bg-[#614261] text-white px-10 py-2 rounded-md font-bold hover:bg-[#4a324a] transition text-sm uppercase">
-            Login
-        </a>
-    </div>
-
-</body>
-</html>
+    <p class="mt-6 border-t border-borovnica-dark/15 pt-5 text-center text-sm">Već imate nalog? <a href="{{ route('login') }}" class="font-bold uppercase underline decoration-borovnica-accent underline-offset-2">Prijavite se</a></p>
+</x-guest-layout>
