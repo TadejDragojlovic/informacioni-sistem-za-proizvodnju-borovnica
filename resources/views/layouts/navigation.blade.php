@@ -6,6 +6,10 @@
         ['label' => 'Početna', 'route' => 'home', 'active' => 'home'],
     ];
 
+    if ($user) {
+        $navigationItems[] = ['label' => 'Kontrolna tabla', 'route' => 'dashboard', 'active' => 'dashboard'];
+    }
+
     if ($user?->role === UserRole::KUPAC) {
         $navigationItems[] = ['label' => 'Moje narudžbine', 'route' => 'user.orders', 'active' => 'user.orders*'];
         $navigationItems[] = ['label' => 'Korpa', 'route' => 'korpa.index', 'active' => 'korpa.*'];
