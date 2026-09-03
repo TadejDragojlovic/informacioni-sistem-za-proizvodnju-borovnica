@@ -78,6 +78,23 @@ class ZaposleniNarudzbinaTest extends TestCase
         $this->assertSame(LotRaspodelaStatus::OTKAZANO, $stavka->raspodele()->sole()->status);
     }
 
+    #[Test]
+    public function zaposleni_ne_moze_direktno_kreirati_narudzbinu_mimo_korpe(): void
+    {
+        $zaposleni = User::factory()->create(['role' => UserRole::ZAPOSLENI]);
+        $kupac = User::factory()->create(['role' => UserRole::KUPAC]);
+
+        $this->actingAs($zaposleni)
+            ->post('/narudzbine', [
+                'user_id' => $kupac->id,
+                'status' => NarudzbinaStatus::OTPREMLJENA->value,
+                'adresa_isporuke' => 'Test adresa 1',
+            ])
+            ->assertStatus(405);
+
+        $this->assertDatabaseCount('narudzbinas', 0);
+    }
+
     /** @return array{User, Narudzbina, NarudzbinaStavka, Lot} */
     private function pripremiNarudzbinuZaRezervaciju(): array
     {
