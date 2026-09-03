@@ -48,6 +48,12 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->narudzbine()->exists() || $user->lotDogadjaji()->exists() || $user->resursi()->exists()) {
+            return Redirect::route('profile.edit')->withErrors([
+                'password' => 'Nalog je deo poslovne istorije sistema i ne može biti obrisan.',
+            ], 'userDeletion');
+        }
+
         Auth::logout();
 
         $user->delete();

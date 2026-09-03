@@ -1,26 +1,20 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+    <div class="min-h-screen bg-borovnica-light py-8 sm:py-10">
+        <div class="mx-auto max-w-4xl px-4 sm:px-6">
+            <div class="mb-8 text-center sm:mb-10 sm:text-left">
+                <h1 class="text-3xl font-bold italic uppercase tracking-widest text-white sm:text-4xl">Moj profil</h1>
+                <div class="mx-auto mt-2 h-1 w-20 bg-borovnica-dark sm:mx-0"></div>
+                <p class="mt-3 text-sm font-semibold">Uloga: {{ $user->role->label() }}</p>
+            </div>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
+            <div class="space-y-6">
+                <div class="rounded-sm border border-borovnica-dark/20 bg-borovnica-table p-5 shadow-xl sm:p-8">
                     @include('profile.partials.update-profile-information-form')
                 </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
+                <div class="rounded-sm border border-borovnica-dark/20 bg-borovnica-table p-5 shadow-xl sm:p-8">
                     @include('profile.partials.update-password-form')
                 </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
+                <div class="rounded-sm border border-red-900/20 bg-red-50/60 p-5 shadow-xl sm:p-8">
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
