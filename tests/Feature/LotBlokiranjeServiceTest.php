@@ -76,7 +76,7 @@ class LotBlokiranjeServiceTest extends TestCase
 
         $this->ocekujDomainException(
             fn () => app(LotService::class)->blokiraj($lot, 'Razlog postoji.'),
-            'Samo uskladišten ili raspoloživ lot može biti blokiran.'
+            'Samo uskladišten, raspoloživ ili iscrpljen lot može biti blokiran.'
         );
 
         try {
@@ -117,6 +117,23 @@ class LotBlokiranjeServiceTest extends TestCase
         $odblokiranLot = $servis->odblokiraj($lot, 'Provera završena.');
 
         $this->assertSame(LotStatus::USKLADISTEN, $odblokiranLot->status);
+    }
+
+    #[Test]
+    public function blokira_i_odblokiranjem_vraca_iscrpljen_lot(): void
+    {
+        $servis = app(LotService::class);
+        $lot = $this->raspolozivLot();
+        $lot->update([
+            'raspoloziva_kolicina_g' => 0,
+            'status' => LotStatus::ISCRPLJEN,
+        ]);
+
+        $blokiranLot = $servis->blokiraj($lot, 'Privremena provera rezervisane robe.');
+        $odblokiranLot = $servis->odblokiraj($blokiranLot, 'Roba je bezbedna za isporuku.');
+
+        $this->assertSame(LotStatus::ISCRPLJEN, $odblokiranLot->status);
+        $this->assertSame(0, $odblokiranLot->raspoloziva_kolicina_g);
     }
 
     #[Test]
