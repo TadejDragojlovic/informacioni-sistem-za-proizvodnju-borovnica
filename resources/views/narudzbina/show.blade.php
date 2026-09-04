@@ -33,8 +33,10 @@
                             \App\Enums\LotRaspodelaStatus::IZDATO,
                         ]);
                         $rasporedjenoPakovanja = $aktivneRaspodele->sum('broj_pakovanja');
+                        $imaIzdatihRaspodela = $aktivneRaspodele->contains('status', \App\Enums\LotRaspodelaStatus::IZDATO);
                         $mozeRezervacija = $narudzbina->status === \App\Enums\NarudzbinaStatus::POTVRDJENA
-                            && $rasporedjenoPakovanja === 0;
+                            && ! $imaIzdatihRaspodela
+                            && $rasporedjenoPakovanja < $stavka->kolicina;
                     @endphp
 
                     <article class="rounded-sm border border-borovnica-dark/20 bg-borovnica-table p-5 shadow-xl sm:p-6">
