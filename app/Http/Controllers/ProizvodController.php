@@ -71,11 +71,4 @@ class ProizvodController extends Controller
 
         return redirect()->route('proizvod.index')->with('success', 'Proizvod ažuriran.');
     }
-
-    public function destroy(Request $request, Proizvod $proizvod): RedirectResponse
-    {
-        $proizvod->delete();
-
-        return redirect()->route('proizvod.index')->with('success', 'Proizvod obrisan.');
-    }
 }

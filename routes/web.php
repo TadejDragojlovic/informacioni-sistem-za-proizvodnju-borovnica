@@ -46,8 +46,8 @@ Route::middleware([
     'role:'.UserRole::ADMIN->value.','.UserRole::ZAPOSLENI->value,
 ])->group(function () {
     // upravljanje
-    Route::resource('proizvod', ProizvodController::class);
-    Route::resource('skladiste', SkladisteController::class);
+    Route::resource('proizvod', ProizvodController::class)->except('destroy');
+    Route::resource('skladiste', SkladisteController::class)->except('destroy');
     Route::resource('resurs', ResursController::class);
     Route::resource('narudzbine', NarudzbinaController::class)->only(['index', 'show']);
 
