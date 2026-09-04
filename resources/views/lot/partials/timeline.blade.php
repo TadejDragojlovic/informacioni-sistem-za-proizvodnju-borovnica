@@ -15,7 +15,9 @@
                         @if ($dogadjaj->prethodni_status || $dogadjaj->novi_status)
                             <div><dt class="font-bold">Promena statusa</dt><dd>{{ $dogadjaj->prethodni_status?->label() ?? '—' }} → {{ $dogadjaj->novi_status?->label() ?? '—' }}</dd></div>
                         @endif
-                        @if ($dogadjaj->prethodnaSkladisnaLokacija || $dogadjaj->novaSkladisnaLokacija)
+                        @if ($dogadjaj->tip === \App\Enums\LotDogadjajTip::KOLICINA_IZDATA && $dogadjaj->prethodnaSkladisnaLokacija)
+                            <div><dt class="font-bold">Lokacija izdavanja</dt><dd>{{ $dogadjaj->prethodnaSkladisnaLokacija->naziv }}</dd></div>
+                        @elseif ($dogadjaj->prethodnaSkladisnaLokacija || $dogadjaj->novaSkladisnaLokacija)
                             <div><dt class="font-bold">Promena lokacije</dt><dd>{{ $dogadjaj->prethodnaSkladisnaLokacija?->naziv ?? '—' }} → {{ $dogadjaj->novaSkladisnaLokacija?->naziv ?? '—' }}</dd></div>
                         @endif
                         @if ($dogadjaj->kolicina_g !== null)

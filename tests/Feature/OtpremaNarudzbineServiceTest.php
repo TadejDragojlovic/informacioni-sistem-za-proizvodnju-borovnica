@@ -51,6 +51,7 @@ class OtpremaNarudzbineServiceTest extends TestCase
             'tip' => LotDogadjajTip::KOLICINA_IZDATA->value,
             'kolicina_g' => 1000,
             'evidentirao_user_id' => $zaposleni->id,
+            'prethodna_skladisna_lokacija_id' => $prviLot->trenutna_skladisna_lokacija_id,
         ]);
     }
 
