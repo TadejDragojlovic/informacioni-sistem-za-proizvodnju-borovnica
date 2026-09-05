@@ -5,7 +5,7 @@
     $mozeKvalitet = $lot->status === LotStatus::USKLADISTEN && $lot->klasa_kvaliteta === null;
     $mozeOdobrenje = $lot->status === LotStatus::USKLADISTEN && $lot->klasa_kvaliteta !== null;
     $mozePremestanje = in_array($lot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV, LotStatus::BLOKIRAN], true);
-    $mozeBlokiranje = in_array($lot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV], true);
+    $mozeBlokiranje = in_array($lot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV, LotStatus::ISCRPLJEN], true);
     $mozeOdblokiranje = $lot->status === LotStatus::BLOKIRAN;
     $mozeKorekcija = in_array($lot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV, LotStatus::BLOKIRAN, LotStatus::ISCRPLJEN], true);
     $mozePovlacenje = $lot->status !== LotStatus::POVUCEN;

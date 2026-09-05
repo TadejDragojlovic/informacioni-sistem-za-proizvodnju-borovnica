@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LotDogadjajTip;
 use App\Enums\LotRaspodelaStatus;
 use App\Enums\NarudzbinaStatus;
+use App\Models\LotDogadjaj;
 use App\Models\Narudzbina;
 use App\Models\Resurs;
+use App\Models\SkladisnaLokacija;
 use App\Models\Skladiste;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -52,18 +55,27 @@ class FinansijeController extends Controller
             });
         });
 
-        $lotIds = $narudzbine
+        $izdateRaspodele = $narudzbine
             ->flatMap(fn ($narudzbina) => $narudzbina->stavke)
             ->flatMap(fn ($stavka) => $stavka->raspodele)
-            ->where('status', LotRaspodelaStatus::IZDATO)
+            ->where('status', LotRaspodelaStatus::IZDATO);
+        $lotIds = $izdateRaspodele
             ->pluck('lot_id')
             ->unique()
             ->values();
+        $lokacijaIds = LotDogadjaj::query()
+            ->whereIn('lot_raspodela_id', $izdateRaspodele->pluck('id'))
+            ->where('tip', LotDogadjajTip::KOLICINA_IZDATA->value)
+            ->whereNotNull('prethodna_skladisna_lokacija_id')
+            ->pluck('prethodna_skladisna_lokacija_id')
+            ->unique();
+        $skladisteIds = SkladisnaLokacija::query()
+            ->whereIn('id', $lokacijaIds)
+            ->pluck('skladiste_id')
+            ->unique();
 
         $listaSkladista = Skladiste::query()
-            ->whereHas('skladisneLokacije.lotovi', function ($query) use ($lotIds): void {
-                $query->whereIn('lots.id', $lotIds);
-            })
+            ->whereIn('id', $skladisteIds)
             ->orderBy('naziv')
             ->get();
         $trosakSkladista = (float) $listaSkladista->sum('mesecni_trosak');

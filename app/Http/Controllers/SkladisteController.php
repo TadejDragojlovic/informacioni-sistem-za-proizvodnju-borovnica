@@ -63,11 +63,4 @@ class SkladisteController extends Controller
 
         return redirect()->route('skladiste.index')->with('success', 'Skladište ažurirano.');
     }
-
-    public function destroy(Request $request, Skladiste $skladiste): RedirectResponse
-    {
-        $skladiste->delete();
-
-        return redirect()->route('skladiste.index')->with('success', 'Skladište obrisano.');
-    }
 }

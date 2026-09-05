@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\LotDogadjajTip;
 use App\Enums\LotRaspodelaStatus;
 use App\Enums\LotStatus;
 use App\Enums\NarudzbinaStatus;
@@ -61,11 +62,22 @@ class FinansijskiIzvestajTest extends TestCase
             'neto_kolicina_g' => 500,
             'cena_po_jedinici' => 1200,
         ]);
-        LotRaspodela::factory()->create([
+        $raspodela = LotRaspodela::factory()->create([
             'lot_id' => $lot->id,
             'narudzbina_stavka_id' => $stavka->id,
             'broj_pakovanja' => 2,
             'status' => LotRaspodelaStatus::IZDATO,
+        ]);
+        $lot->dogadjaji()->create([
+            'lot_raspodela_id' => $raspodela->id,
+            'tip' => LotDogadjajTip::KOLICINA_IZDATA,
+            'kolicina_g' => 1000,
+            'vreme_dogadjaja' => $danas,
+            'prethodna_skladisna_lokacija_id' => $skladisnaLokacija->id,
+        ]);
+        $lot->update([
+            'trenutna_skladisna_lokacija_id' => null,
+            'status' => LotStatus::POVUCEN,
         ]);
         Resurs::factory()->create([
             'lot_id' => $lot->id,

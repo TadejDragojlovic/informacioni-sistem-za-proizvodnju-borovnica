@@ -17,6 +17,7 @@ use App\Models\SkladisnaLokacija;
 use App\Models\Skladiste;
 use App\Models\Sorta;
 use App\Models\User;
+use App\Services\LotService;
 use App\Services\NarudzbinaService;
 use Carbon\Carbon;
 use DomainException;
@@ -153,6 +154,30 @@ class FifoRezervacijaServiceTest extends TestCase
         $this->ocekujDomainException(
             fn () => app(NarudzbinaService::class)->rezervisiFifo($stavka),
             'Stavka narudžbine već ima aktivnu raspodelu lotova.'
+        );
+    }
+
+    #[Test]
+    public function fifo_dopunjuje_stavku_nakon_povlacenja_jednog_od_vise_lotova(): void
+    {
+        $sorta = Sorta::factory()->create();
+        $stavka = $this->stavka($sorta, 6, 500);
+        $povuceniLot = $this->raspolozivLot($sorta, '2026-06-01', 2000);
+        $zadrzaniLot = $this->raspolozivLot($sorta, '2026-06-02', 1000);
+        $zamenskiLot = $this->raspolozivLot($sorta, '2026-06-03', 2000);
+        $servisNarudzbine = app(NarudzbinaService::class);
+
+        $servisNarudzbine->rezervisiFifo($stavka);
+        app(LotService::class)->povuci($povuceniLot, 'Lot nije bezbedan za isporuku.');
+        $noveRaspodele = $servisNarudzbine->rezervisiFifo($stavka);
+
+        $this->assertSame(LotRaspodelaStatus::OTKAZANO, $stavka->raspodele()->where('lot_id', $povuceniLot->id)->sole()->status);
+        $this->assertSame(LotRaspodelaStatus::REZERVISANO, $stavka->raspodele()->where('lot_id', $zadrzaniLot->id)->sole()->status);
+        $this->assertSame(4, $noveRaspodele->sole()->broj_pakovanja);
+        $this->assertSame($zamenskiLot->id, $noveRaspodele->sole()->lot_id);
+        $this->assertSame(
+            6,
+            $stavka->raspodele()->where('status', LotRaspodelaStatus::REZERVISANO->value)->sum('broj_pakovanja')
         );
     }
 

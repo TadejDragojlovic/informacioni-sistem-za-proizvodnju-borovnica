@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\LotRaspodelaStatus;
 use App\Enums\NarudzbinaStatus;
-use App\Http\Requests\NarudzbinaStoreRequest;
-use App\Http\Requests\NarudzbinaUpdateRequest;
 use App\Http\Requests\ObavezanRazlogRequest;
 use App\Models\Narudzbina;
 use App\Models\NarudzbinaStavka;
@@ -53,20 +51,6 @@ class NarudzbinaController extends Controller
         ]);
     }
 
-    public function create(): View
-    {
-        return view('narudzbina.create');
-    }
-
-    public function store(NarudzbinaStoreRequest $request): RedirectResponse
-    {
-        $narudzbina = Narudzbina::create($request->validated());
-
-        $request->session()->flash('narudzbina.id', $narudzbina->id);
-
-        return redirect()->route('narudzbine.index');
-    }
-
     public function show(Narudzbina $narudzbine): View
     {
         $narudzbina = $this->ucitajDetalje($narudzbine);
@@ -75,66 +59,6 @@ class NarudzbinaController extends Controller
             'narudzbina' => $narudzbina,
             'potpunoRezervisana' => $this->potpunoRezervisana($narudzbina),
         ]);
-    }
-
-    public function edit($id): View
-    {
-        $narudzbina = Narudzbina::findOrFail($id);
-        $statusi = array_map(
-            fn (NarudzbinaStatus $status) => $status->value,
-            NarudzbinaStatus::cases()
-        );
-
-        return view('narudzbina.edit', [
-            'narudzbina' => $narudzbina,
-            'statusi' => $statusi,
-        ]);
-    }
-
-    public function update(NarudzbinaUpdateRequest $request, $id): RedirectResponse
-    {
-        $narudzbina = Narudzbina::findOrFail($id);
-        $podaci = $request->validated();
-        $noviStatus = NarudzbinaStatus::from($podaci['status']);
-
-        if ($narudzbina->status === $noviStatus) {
-            return redirect()->route('narudzbine.index')->with('success', 'Status narudžbine nije promenjen.');
-        }
-
-        if ($noviStatus === NarudzbinaStatus::OTPREMLJENA) {
-            return $this->izvrsiServisnuOperaciju(
-                fn () => $this->narudzbinaService->otpremi($narudzbina, $request->user()),
-                'Narudžbina je uspešno otpremljena.',
-                'narudzbine.index'
-            );
-        }
-
-        if ($noviStatus === NarudzbinaStatus::OTKAZANA) {
-            return $this->izvrsiServisnuOperaciju(
-                fn () => $this->narudzbinaService->otkazi($narudzbina, $podaci['razlog'], $request->user()),
-                'Narudžbina je uspešno otkazana.',
-                'narudzbine.index'
-            );
-        }
-
-        return redirect()->back()->withErrors([
-            'operacija' => 'Status narudžbine nije moguće direktno promeniti u POTVRDJENA.',
-        ]);
-    }
-
-    public function destroy(Request $request, $id): RedirectResponse
-    {
-        $narudzbina = Narudzbina::findOrFail($id);
-
-        return $this->izvrsiServisnuOperaciju(
-            fn () => $this->narudzbinaService->otkazi(
-                $narudzbina,
-                'Otkazivanje putem administrativne akcije.',
-                $request->user()
-            ),
-            'Narudžbina je uspešno otkazana.',
-            'narudzbine.index'
-        );
     }
 
     public function mojeNarudzbine(): View

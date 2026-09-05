@@ -269,7 +269,7 @@ class LotService
         });
     }
 
-    /** Blokira uskladišten ili raspoloživ lot uz obavezan razlog i beleži prethodni status. */
+    /** Blokira uskladišten, raspoloživ ili iscrpljen lot uz obavezan razlog i beleži prethodni status. */
     public function blokiraj(Lot $lot, string $razlog, ?User $evidentirao = null): Lot
     {
         $razlog = $this->normalizujObavezanRazlog($razlog);
@@ -277,8 +277,8 @@ class LotService
         return DB::transaction(function () use ($lot, $razlog, $evidentirao): Lot {
             $zakljucanLot = Lot::query()->lockForUpdate()->findOrFail($lot->id);
 
-            if (! in_array($zakljucanLot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV], true)) {
-                throw new DomainException('Samo uskladišten ili raspoloživ lot može biti blokiran.');
+            if (! in_array($zakljucanLot->status, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV, LotStatus::ISCRPLJEN], true)) {
+                throw new DomainException('Samo uskladišten, raspoloživ ili iscrpljen lot može biti blokiran.');
             }
 
             $prethodniStatus = $zakljucanLot->status;
@@ -319,7 +319,7 @@ class LotService
                 ->first();
             $statusZaVracanje = $dogadjajBlokiranja?->prethodni_status;
 
-            if (! in_array($statusZaVracanje, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV], true)) {
+            if (! in_array($statusZaVracanje, [LotStatus::USKLADISTEN, LotStatus::RASPOLOZIV, LotStatus::ISCRPLJEN], true)) {
                 throw new DomainException('Prethodni status lota nije moguće pouzdano utvrditi.');
             }
 

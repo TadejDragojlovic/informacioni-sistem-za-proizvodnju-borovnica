@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 
 class NarudzbinaService
 {
-    /** FIFO redosledom rezerviše cela pakovanja iz odgovarajućih lotova i evidentira svaku raspodelu i promenu zalihe.
+    /** FIFO redosledom rezerviše ili dopunjuje cela pakovanja iz odgovarajućih lotova i evidentira svaku promenu zalihe.
      *
      * @return Collection<int, LotRaspodela>
      */
@@ -42,20 +42,24 @@ class NarudzbinaService
                 throw new DomainException('Lotovi se mogu rezervisati samo za potvrđenu narudžbinu.');
             }
 
-            $aktivnaRaspodela = LotRaspodela::query()
+            $raspodeleStavke = LotRaspodela::query()
                 ->where('narudzbina_stavka_id', $zakljucanaStavka->id)
-                ->whereIn('status', [
-                    LotRaspodelaStatus::REZERVISANO->value,
-                    LotRaspodelaStatus::IZDATO->value,
-                ])
                 ->lockForUpdate()
-                ->first();
+                ->get();
 
-            if ($aktivnaRaspodela !== null) {
+            if ($raspodeleStavke->contains('status', LotRaspodelaStatus::IZDATO)) {
                 throw new DomainException('Stavka narudžbine već ima aktivnu raspodelu lotova.');
             }
 
-            $preostaloPakovanja = $zakljucanaStavka->kolicina;
+            $rezervisanoPakovanja = $raspodeleStavke
+                ->where('status', LotRaspodelaStatus::REZERVISANO)
+                ->sum('broj_pakovanja');
+
+            if ($rezervisanoPakovanja >= $zakljucanaStavka->kolicina) {
+                throw new DomainException('Stavka narudžbine već ima aktivnu raspodelu lotova.');
+            }
+
+            $preostaloPakovanja = $zakljucanaStavka->kolicina - $rezervisanoPakovanja;
             $netoKolicinaG = $zakljucanaStavka->neto_kolicina_g;
 
             if ($preostaloPakovanja <= 0 || $netoKolicinaG <= 0) {
@@ -106,13 +110,20 @@ class NarudzbinaService
                     ? LotStatus::ISCRPLJEN
                     : LotStatus::RASPOLOZIV;
 
+                $postojecaRaspodela = $raspodeleStavke->firstWhere('lot_id', $lot->id);
+                $ukupnoPakovanjaLota = $brojPakovanja;
+
+                if ($postojecaRaspodela?->status === LotRaspodelaStatus::REZERVISANO) {
+                    $ukupnoPakovanjaLota += $postojecaRaspodela->broj_pakovanja;
+                }
+
                 $raspodela = LotRaspodela::updateOrCreate(
                     [
                         'lot_id' => $lot->id,
                         'narudzbina_stavka_id' => $zakljucanaStavka->id,
                     ],
                     [
-                        'broj_pakovanja' => $brojPakovanja,
+                        'broj_pakovanja' => $ukupnoPakovanjaLota,
                         'status' => LotRaspodelaStatus::REZERVISANO,
                     ]
                 );
@@ -233,6 +244,7 @@ class NarudzbinaService
                     'evidentirao_user_id' => $evidentirao?->id,
                     'prethodni_status' => $lot->status,
                     'novi_status' => $lot->status,
+                    'prethodna_skladisna_lokacija_id' => $lot->trenutna_skladisna_lokacija_id,
                     'razlog' => null,
                 ]);
             }

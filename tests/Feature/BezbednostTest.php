@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\Proizvod;
+use App\Models\Skladiste;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -46,5 +48,19 @@ class BezbednostTest extends TestCase
         $response = $this->get(route('skladiste.index'));
 
         $response->assertRedirect('/login');
+    }
+
+    #[Test]
+    public function proizvodi_i_skladista_se_ne_mogu_fizicki_obrisati(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $proizvod = Proizvod::factory()->create();
+        $skladiste = Skladiste::factory()->create();
+
+        $this->actingAs($admin)->delete("/proizvod/{$proizvod->id}")->assertStatus(405);
+        $this->actingAs($admin)->delete("/skladiste/{$skladiste->id}")->assertStatus(405);
+
+        $this->assertDatabaseHas('proizvods', ['id' => $proizvod->id]);
+        $this->assertDatabaseHas('skladistes', ['id' => $skladiste->id]);
     }
 }

@@ -60,7 +60,15 @@ class NarudzbinaSeeder extends Seeder
         $otpremljenaStavka = $this->stavka($otpremljena, $duke250, 4);
         $raspodelaDuke = $this->raspodela($lotDuke, $otpremljenaStavka, 4, LotRaspodelaStatus::IZDATO);
         $this->dogadjaj($lotDuke, LotDogadjajTip::KOLICINA_REZERVISANA, '2026-07-02 09:00:00', 1000, $raspodelaDuke->id, $zaposleni->id);
-        $this->dogadjaj($lotDuke, LotDogadjajTip::KOLICINA_IZDATA, '2026-07-02 14:00:00', 1000, $raspodelaDuke->id, $zaposleni->id);
+        $this->dogadjaj(
+            $lotDuke,
+            LotDogadjajTip::KOLICINA_IZDATA,
+            '2026-07-02 14:00:00',
+            1000,
+            $raspodelaDuke->id,
+            $zaposleni->id,
+            $lotDuke->trenutna_skladisna_lokacija_id
+        );
 
         $otkazana = Narudzbina::updateOrCreate(
             ['adresa_isporuke' => 'Cara Lazara 7, Valjevo'],
@@ -111,7 +119,8 @@ class NarudzbinaSeeder extends Seeder
         string $vreme,
         int $kolicina,
         ?int $lotRaspodelaId,
-        ?int $evidentiraoUserId
+        ?int $evidentiraoUserId,
+        ?int $prethodnaSkladisnaLokacijaId = null
     ): void {
         $vremeDogadjaja = Carbon::parse($vreme);
         $identifikator = [
@@ -126,6 +135,7 @@ class NarudzbinaSeeder extends Seeder
             array_merge($identifikator, [
                 'kolicina_g' => $kolicina,
                 'evidentirao_user_id' => $evidentiraoUserId,
+                'prethodna_skladisna_lokacija_id' => $prethodnaSkladisnaLokacijaId,
             ])
         );
     }
