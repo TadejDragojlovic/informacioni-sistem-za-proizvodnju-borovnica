@@ -9,6 +9,6 @@
 - događaji lota čuvaju prijem, kvalitet, odobrenje, blokiranje, povlačenje i promene količine;
 - svaki lot ima najmanje jedan resurs, a otpremljene narudžbine koriste lotove iz oba skladišta.
 
-Za pun demo finansijskog izveštaja izaberi period od `02.07.2026` do `12.07.2026`.
+Za pun demo finansijskog izveštaja izaberi jul 2026. godine.
 
 Seederi koriste `updateOrCreate`, pa ponovljeno `php artisan db:seed` ne duplira demo zapise.

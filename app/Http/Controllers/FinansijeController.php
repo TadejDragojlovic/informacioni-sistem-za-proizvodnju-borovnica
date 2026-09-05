@@ -18,33 +18,34 @@ class FinansijeController extends Controller
 {
     public function create(): View
     {
-        $prva = Narudzbina::query()
-            ->where('status', NarudzbinaStatus::OTPREMLJENA->value)
-            ->oldest('created_at')
-            ->first(['created_at']);
-        $poslednja = Narudzbina::query()
-            ->where('status', NarudzbinaStatus::OTPREMLJENA->value)
-            ->latest('created_at')
-            ->first(['created_at']);
+        $poslednjaOtprema = LotDogadjaj::query()
+            ->where('tip', LotDogadjajTip::KOLICINA_IZDATA->value)
+            ->whereHas('raspodela.narudzbinaStavka.narudzbina', function ($query) {
+                $query->where('status', NarudzbinaStatus::OTPREMLJENA->value);
+            })
+            ->latest('vreme_dogadjaja')
+            ->first(['vreme_dogadjaja']);
 
         return view('admin.finansije.create', [
-            'podrazumevaniDatumOd' => $prva?->created_at->toDateString() ?? now()->startOfMonth()->toDateString(),
-            'podrazumevaniDatumDo' => $poslednja?->created_at->toDateString() ?? now()->toDateString(),
+            'podrazumevaniMesec' => $poslednjaOtprema?->vreme_dogadjaja->format('Y-m') ?? now()->format('Y-m'),
         ]);
     }
 
     public function generate(Request $request): View
     {
         $period = $request->validate([
-            'datum_od' => ['required', 'date'],
-            'datum_do' => ['required', 'date', 'after_or_equal:datum_od'],
+            'mesec' => ['required', 'date_format:Y-m'],
         ]);
-        $datumOd = CarbonImmutable::parse($period['datum_od'])->startOfDay();
-        $datumDo = CarbonImmutable::parse($period['datum_do'])->endOfDay();
+        $datumOd = CarbonImmutable::createFromFormat('Y-m', $period['mesec'])->startOfMonth();
+        $datumDo = $datumOd->endOfMonth();
 
         $narudzbine = Narudzbina::with('stavke.raspodele.lot')
             ->where('status', NarudzbinaStatus::OTPREMLJENA->value)
-            ->whereBetween('created_at', [$datumOd, $datumDo])
+            ->whereHas('stavke.raspodele.dogadjaji', function ($query) use ($datumOd, $datumDo) {
+                $query
+                    ->where('tip', LotDogadjajTip::KOLICINA_IZDATA->value)
+                    ->whereBetween('vreme_dogadjaja', [$datumOd, $datumDo]);
+            })
             ->get();
 
         $brojNarudzbina = $narudzbine->count();

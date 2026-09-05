@@ -45,7 +45,7 @@ class DashboardController extends Controller
         ];
 
         if ($user->role === UserRole::ADMIN) {
-            $akcije[] = ['naziv' => 'Finansije', 'opis' => 'Generišite finansijski pregled za izabrani period.', 'url' => route('admin.finansije.create')];
+            $akcije[] = ['naziv' => 'Finansije', 'opis' => 'Generišite finansijski pregled za izabrani mesec.', 'url' => route('admin.finansije.create')];
         }
 
         return view('dashboard', [

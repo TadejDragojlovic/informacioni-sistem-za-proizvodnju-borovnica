@@ -30,7 +30,8 @@ class FinansijskiIzvestajTest extends TestCase
     {
         // 1. Setup: Admin koji ima pristup
         $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
-        $danas = Carbon::create(2026, 1, 1);
+        $datumKreiranja = Carbon::create(2025, 12, 20);
+        $datumOtpreme = Carbon::create(2026, 1, 5);
 
         $skladiste = Skladiste::factory()->create([
             'mesecni_trosak' => 3000,
@@ -52,8 +53,8 @@ class FinansijskiIzvestajTest extends TestCase
         $narudzbina = Narudzbina::factory()->create([
             'user_id' => User::factory()->create()->id,
             'status' => NarudzbinaStatus::OTPREMLJENA,
-            'created_at' => $danas,
-            'updated_at' => $danas,
+            'created_at' => $datumKreiranja,
+            'updated_at' => $datumOtpreme,
         ]);
         $stavka = NarudzbinaStavka::factory()->create([
             'narudzbina_id' => $narudzbina->id,
@@ -72,7 +73,7 @@ class FinansijskiIzvestajTest extends TestCase
             'lot_raspodela_id' => $raspodela->id,
             'tip' => LotDogadjajTip::KOLICINA_IZDATA,
             'kolicina_g' => 1000,
-            'vreme_dogadjaja' => $danas,
+            'vreme_dogadjaja' => $datumOtpreme,
             'prethodna_skladisna_lokacija_id' => $skladisnaLokacija->id,
         ]);
         $lot->update([
@@ -89,12 +90,11 @@ class FinansijskiIzvestajTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.finansije.create'))
             ->assertOk()
-            ->assertSee('2026-01-01', false);
+            ->assertSee('2026-01', false);
 
-        // generisemo izvestaj samo za danas
+        // Izveštaj pripada mesecu stvarne otpreme, nezavisno od datuma kreiranja narudžbine.
         $response = $this->actingAs($admin)->post(route('admin.finansije.generate'), [
-            'datum_od' => $danas->toDateString(),
-            'datum_do' => $danas->toDateString(),
+            'mesec' => $datumOtpreme->format('Y-m'),
         ]);
 
         $response->assertStatus(200);
