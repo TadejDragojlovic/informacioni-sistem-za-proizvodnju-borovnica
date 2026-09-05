@@ -12,6 +12,7 @@ use App\Models\LotRaspodela;
 use App\Models\Narudzbina;
 use App\Models\NarudzbinaStavka;
 use App\Models\Resurs;
+use App\Models\SkladisnaLokacija;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,10 +58,32 @@ class SeederTest extends TestCase
         $this->assertDatabaseCount('skladisna_lokacija', 5);
         $this->assertDatabaseCount('proizvods', 4);
         $this->assertDatabaseCount('lots', 8);
-        $this->assertDatabaseCount('narudzbinas', 3);
-        $this->assertDatabaseCount('narudzbina_stavkas', 3);
-        $this->assertDatabaseCount('lot_raspodela', 4);
-        $this->assertDatabaseCount('resurs', 5);
+        $this->assertDatabaseCount('narudzbinas', 5);
+        $this->assertDatabaseCount('narudzbina_stavkas', 6);
+        $this->assertDatabaseCount('lot_raspodela', 7);
+        $this->assertDatabaseCount('resurs', 12);
+        $this->assertSame(0, Lot::doesntHave('resursi')->count());
+        $this->assertSame(
+            3,
+            Narudzbina::where('status', NarudzbinaStatus::OTPREMLJENA->value)->count()
+        );
+        $this->assertSame(
+            0,
+            LotDogadjaj::query()
+                ->where('tip', LotDogadjajTip::KOLICINA_IZDATA->value)
+                ->whereNull('prethodna_skladisna_lokacija_id')
+                ->count()
+        );
+        $lokacijeIzdavanja = LotDogadjaj::query()
+            ->where('tip', LotDogadjajTip::KOLICINA_IZDATA->value)
+            ->pluck('prethodna_skladisna_lokacija_id');
+        $this->assertSame(
+            2,
+            SkladisnaLokacija::whereIn('id', $lokacijeIzdavanja)
+                ->pluck('skladiste_id')
+                ->unique()
+                ->count()
+        );
 
         $this->assertDatabaseHas('narudzbinas', [
             'status' => NarudzbinaStatus::POTVRDJENA->value,
