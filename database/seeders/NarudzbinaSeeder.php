@@ -42,9 +42,11 @@ class NarudzbinaSeeder extends Seeder
         $lotDuke = Lot::where('oznaka', 'BL-2026-003')->firstOrFail();
         $lotBluecrop = Lot::where('oznaka', 'BL-2026-006')->firstOrFail();
 
-        $potvrdjena = Narudzbina::updateOrCreate(
-            ['adresa_isporuke' => 'Bulevar oslobođenja 10, Novi Sad'],
-            ['user_id' => $kupac1->id, 'status' => NarudzbinaStatus::POTVRDJENA]
+        $potvrdjena = $this->narudzbina(
+            $kupac1,
+            NarudzbinaStatus::POTVRDJENA,
+            'Bulevar oslobođenja 10, Novi Sad',
+            '2026-07-01 09:30:00'
         );
         $potvrdjenaStavka = $this->stavka($potvrdjena, $chandler500, 6);
 
@@ -53,31 +55,92 @@ class NarudzbinaSeeder extends Seeder
         $this->raspodela($lotChandler2, $potvrdjenaStavka, 2, LotRaspodelaStatus::REZERVISANO);
         $this->dogadjaj($lotChandler2, LotDogadjajTip::KOLICINA_REZERVISANA, '2026-07-01 10:05:00', 1000, null, $zaposleni->id);
 
-        $otpremljena = Narudzbina::updateOrCreate(
-            ['adresa_isporuke' => 'Kralja Petra 25, Beograd'],
-            ['user_id' => $kupac2->id, 'status' => NarudzbinaStatus::OTPREMLJENA]
+        $otpremljena = $this->narudzbina(
+            $kupac2,
+            NarudzbinaStatus::OTPREMLJENA,
+            'Kralja Petra 25, Beograd',
+            '2026-07-02 08:30:00'
         );
         $otpremljenaStavka = $this->stavka($otpremljena, $duke250, 4);
-        $raspodelaDuke = $this->raspodela($lotDuke, $otpremljenaStavka, 4, LotRaspodelaStatus::IZDATO);
-        $this->dogadjaj($lotDuke, LotDogadjajTip::KOLICINA_REZERVISANA, '2026-07-02 09:00:00', 1000, $raspodelaDuke->id, $zaposleni->id);
-        $this->dogadjaj(
+        $this->izdataRaspodela(
             $lotDuke,
-            LotDogadjajTip::KOLICINA_IZDATA,
+            $otpremljenaStavka,
+            4,
+            '2026-07-02 09:00:00',
             '2026-07-02 14:00:00',
-            1000,
-            $raspodelaDuke->id,
-            $zaposleni->id,
-            $lotDuke->trenutna_skladisna_lokacija_id
+            $zaposleni
         );
 
-        $otkazana = Narudzbina::updateOrCreate(
-            ['adresa_isporuke' => 'Cara Lazara 7, Valjevo'],
-            ['user_id' => $kupac3->id, 'status' => NarudzbinaStatus::OTKAZANA]
+        $otpremljenaChandler = $this->narudzbina(
+            $kupac1,
+            NarudzbinaStatus::OTPREMLJENA,
+            'Bulevar Nemanjića 21, Niš',
+            '2026-07-08 08:30:00'
+        );
+        $otpremljenaChandlerStavka = $this->stavka($otpremljenaChandler, $chandler500, 4);
+        $this->izdataRaspodela(
+            $lotChandler2,
+            $otpremljenaChandlerStavka,
+            4,
+            '2026-07-08 09:00:00',
+            '2026-07-08 15:00:00',
+            $zaposleni
+        );
+
+        $otpremljenaMesovita = $this->narudzbina(
+            $kupac3,
+            NarudzbinaStatus::OTPREMLJENA,
+            'Kralja Aleksandra I 44, Kragujevac',
+            '2026-07-12 08:30:00'
+        );
+        $bluecropStavka = $this->stavka($otpremljenaMesovita, $bluecrop500, 4);
+        $this->izdataRaspodela(
+            $lotBluecrop,
+            $bluecropStavka,
+            4,
+            '2026-07-12 09:00:00',
+            '2026-07-12 14:00:00',
+            $zaposleni
+        );
+        $dukeStavka = $this->stavka($otpremljenaMesovita, $duke250, 4);
+        $this->izdataRaspodela(
+            $lotDuke,
+            $dukeStavka,
+            4,
+            '2026-07-12 09:05:00',
+            '2026-07-12 14:05:00',
+            $zaposleni
+        );
+
+        $otkazana = $this->narudzbina(
+            $kupac3,
+            NarudzbinaStatus::OTKAZANA,
+            'Cara Lazara 7, Valjevo',
+            '2026-07-03 10:30:00'
         );
         $otkazanaStavka = $this->stavka($otkazana, $bluecrop500, 3);
         $raspodelaBluecrop = $this->raspodela($lotBluecrop, $otkazanaStavka, 3, LotRaspodelaStatus::OTKAZANO);
         $this->dogadjaj($lotBluecrop, LotDogadjajTip::KOLICINA_REZERVISANA, '2026-07-03 11:00:00', 1500, $raspodelaBluecrop->id, $zaposleni->id);
         $this->dogadjaj($lotBluecrop, LotDogadjajTip::REZERVACIJA_OSLOBODJENA, '2026-07-03 16:00:00', -1500, $raspodelaBluecrop->id, $zaposleni->id);
+    }
+
+    private function narudzbina(
+        User $kupac,
+        NarudzbinaStatus $status,
+        string $adresaIsporuke,
+        string $datum
+    ): Narudzbina {
+        $narudzbina = Narudzbina::updateOrCreate(
+            ['adresa_isporuke' => $adresaIsporuke],
+            ['user_id' => $kupac->id, 'status' => $status]
+        );
+        $vreme = Carbon::parse($datum);
+        $narudzbina->forceFill([
+            'created_at' => $vreme,
+            'updated_at' => $vreme,
+        ])->save();
+
+        return $narudzbina;
     }
 
     private function stavka(Narudzbina $narudzbina, Proizvod $proizvod, int $kolicina): NarudzbinaStavka
@@ -110,6 +173,36 @@ class NarudzbinaSeeder extends Seeder
                 'broj_pakovanja' => $brojPakovanja,
                 'status' => $status,
             ]
+        );
+    }
+
+    private function izdataRaspodela(
+        Lot $lot,
+        NarudzbinaStavka $stavka,
+        int $brojPakovanja,
+        string $vremeRezervacije,
+        string $vremeIzdavanja,
+        User $evidentirao
+    ): void {
+        $raspodela = $this->raspodela($lot, $stavka, $brojPakovanja, LotRaspodelaStatus::IZDATO);
+        $kolicinaG = $brojPakovanja * $stavka->neto_kolicina_g;
+
+        $this->dogadjaj(
+            $lot,
+            LotDogadjajTip::KOLICINA_REZERVISANA,
+            $vremeRezervacije,
+            $kolicinaG,
+            $raspodela->id,
+            $evidentirao->id
+        );
+        $this->dogadjaj(
+            $lot,
+            LotDogadjajTip::KOLICINA_IZDATA,
+            $vremeIzdavanja,
+            $kolicinaG,
+            $raspodela->id,
+            $evidentirao->id,
+            $lot->trenutna_skladisna_lokacija_id
         );
     }
 

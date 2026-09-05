@@ -20,6 +20,10 @@ class LotSeeder extends Seeder
     {
         $zaposleni = User::where('email', 'zaposleni@borovnica.com')->firstOrFail();
         $hladnaKomora = SkladisnaLokacija::where('naziv', 'Hladna komora 1')->firstOrFail();
+        $zonaOtpremeBeograd = SkladisnaLokacija::query()
+            ->where('naziv', 'Zona za otpremu')
+            ->whereHas('skladiste', fn ($query) => $query->where('naziv', 'Skladište za otpremu'))
+            ->firstOrFail();
 
         $lotovi = [
             [
@@ -41,12 +45,12 @@ class LotSeeder extends Seeder
                 'parcela' => 'P-02',
                 'datum_berbe' => '2026-06-22',
                 'pocetna_kolicina_g' => 8000,
-                'raspoloziva_kolicina_g' => 7000,
+                'raspoloziva_kolicina_g' => 5000,
                 'status' => LotStatus::RASPOLOZIV,
                 'klasa_kvaliteta' => KlasaKvaliteta::KLASA_I,
                 'broj_dokumenta_kvaliteta' => 'KD-2026-002',
                 'lokacija_id' => $hladnaKomora->id,
-                'napomena' => 'Drugi Chandler lot za FIFO raspodelu.',
+                'napomena' => 'Chandler lot sa rezervisanom i izdatom količinom.',
             ],
             [
                 'oznaka' => 'BL-2026-003',
@@ -54,12 +58,12 @@ class LotSeeder extends Seeder
                 'parcela' => 'P-02',
                 'datum_berbe' => '2026-06-18',
                 'pocetna_kolicina_g' => 6000,
-                'raspoloziva_kolicina_g' => 5000,
+                'raspoloziva_kolicina_g' => 4000,
                 'status' => LotStatus::RASPOLOZIV,
                 'klasa_kvaliteta' => KlasaKvaliteta::KLASA_II,
                 'broj_dokumenta_kvaliteta' => 'KD-2026-003',
                 'lokacija_id' => $hladnaKomora->id,
-                'napomena' => 'Deo lota je izdat u otpremljenoj narudžbini.',
+                'napomena' => 'Delovi lota su izdati u dve otpremljene narudžbine.',
             ],
             [
                 'oznaka' => 'BL-2026-004',
@@ -93,12 +97,12 @@ class LotSeeder extends Seeder
                 'parcela' => 'P-01',
                 'datum_berbe' => '2026-06-26',
                 'pocetna_kolicina_g' => 7000,
-                'raspoloziva_kolicina_g' => 7000,
+                'raspoloziva_kolicina_g' => 5000,
                 'status' => LotStatus::RASPOLOZIV,
                 'klasa_kvaliteta' => KlasaKvaliteta::KLASA_I,
                 'broj_dokumenta_kvaliteta' => 'KD-2026-006',
-                'lokacija_id' => $hladnaKomora->id,
-                'napomena' => 'Lot sa otkazanom rezervacijom.',
+                'lokacija_id' => $zonaOtpremeBeograd->id,
+                'napomena' => 'Lot sa otkazanom rezervacijom i kasnijim izdavanjem.',
             ],
             [
                 'oznaka' => 'BL-2026-007',

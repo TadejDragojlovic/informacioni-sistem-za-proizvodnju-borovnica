@@ -20,8 +20,15 @@ class ResursSeeder extends Seeder
             ['lot' => 'BL-2026-001', 'naziv' => 'Organsko djubrivo', 'kolicina' => 12.50, 'jedinica_mere' => 'kg', 'cena_po_jedinici' => 180.00, 'datum_upotrebe' => '2026-05-15'],
             ['lot' => 'BL-2026-001', 'naziv' => 'Ambalazne kutije 500 g', 'kolicina' => 30.00, 'jedinica_mere' => 'kom', 'cena_po_jedinici' => 35.00, 'datum_upotrebe' => '2026-06-20'],
             ['lot' => 'BL-2026-002', 'naziv' => 'Kartonske pregrade', 'kolicina' => 18.00, 'jedinica_mere' => 'kom', 'cena_po_jedinici' => 12.50, 'datum_upotrebe' => '2026-06-22'],
+            ['lot' => 'BL-2026-002', 'naziv' => 'Rucna berba', 'kolicina' => 16.00, 'jedinica_mere' => 'h', 'cena_po_jedinici' => 480.00, 'datum_upotrebe' => '2026-06-22'],
             ['lot' => 'BL-2026-003', 'naziv' => 'Rashladni gel', 'kolicina' => 8.00, 'jedinica_mere' => 'kg', 'cena_po_jedinici' => 240.00, 'datum_upotrebe' => '2026-06-18'],
+            ['lot' => 'BL-2026-003', 'naziv' => 'Ambalazne posude 250 g', 'kolicina' => 24.00, 'jedinica_mere' => 'kom', 'cena_po_jedinici' => 22.00, 'datum_upotrebe' => '2026-06-18'],
+            ['lot' => 'BL-2026-004', 'naziv' => 'Laboratorijska analiza', 'kolicina' => 1.00, 'jedinica_mere' => 'usluga', 'cena_po_jedinici' => 6500.00, 'datum_upotrebe' => '2026-06-24'],
+            ['lot' => 'BL-2026-005', 'naziv' => 'Transport do hladnjace', 'kolicina' => 1.00, 'jedinica_mere' => 'usluga', 'cena_po_jedinici' => 4800.00, 'datum_upotrebe' => '2026-06-15'],
             ['lot' => 'BL-2026-006', 'naziv' => 'Etikete za sledljivost', 'kolicina' => 25.00, 'jedinica_mere' => 'kom', 'cena_po_jedinici' => 8.00, 'datum_upotrebe' => '2026-06-26'],
+            ['lot' => 'BL-2026-006', 'naziv' => 'Ambalazne kutije 500 g', 'kolicina' => 20.00, 'jedinica_mere' => 'kom', 'cena_po_jedinici' => 35.00, 'datum_upotrebe' => '2026-06-26'],
+            ['lot' => 'BL-2026-007', 'naziv' => 'Rucna berba', 'kolicina' => 12.00, 'jedinica_mere' => 'h', 'cena_po_jedinici' => 480.00, 'datum_upotrebe' => '2026-06-28'],
+            ['lot' => 'BL-2026-008', 'naziv' => 'Paletne gajbice', 'kolicina' => 15.00, 'jedinica_mere' => 'kom', 'cena_po_jedinici' => 95.00, 'datum_upotrebe' => '2026-06-27'],
         ];
 
         foreach ($resursi as $resurs) {

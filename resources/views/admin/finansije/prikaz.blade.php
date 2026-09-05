@@ -11,9 +11,9 @@
         <div class="mx-auto max-w-6xl px-4 sm:px-6 print-report">
             <div class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <a href="{{ route('admin.finansije.create') }}" class="no-print font-semibold italic text-white transition hover:text-borovnica-soft">← Promeni period</a>
+                    <a href="{{ route('admin.finansije.create') }}" class="no-print font-semibold italic text-white transition hover:text-borovnica-soft">← Promeni mesec</a>
                     <h1 class="mt-3 text-3xl font-bold italic uppercase tracking-widest text-white sm:text-4xl print:text-borovnica-dark">Finansijski izveštaj</h1>
-                    <p class="mt-2 font-semibold text-borovnica-soft print:text-borovnica-dark">{{ $datumOd->format('d.m.Y.') }} – {{ $datumDo->format('d.m.Y.') }}</p>
+                    <p class="mt-2 font-semibold text-borovnica-soft print:text-borovnica-dark">Mesec obračuna: {{ $datumOd->format('m/Y') }}</p>
                 </div>
                 <button type="button" onclick="window.print()" class="no-print self-start rounded-md bg-borovnica-dark px-6 py-3 text-sm font-bold uppercase text-white shadow-lg transition hover:bg-borovnica-accent sm:self-auto">Štampaj izveštaj</button>
             </div>
@@ -44,7 +44,7 @@
                         <span class="whitespace-nowrap text-sm font-bold">{{ number_format($trosakSkladista, 2, ',', '.') }} RSD</span>
                     </div>
                     @if ($listaSkladista->isEmpty())
-                        <p class="p-5 text-sm italic">Nema skladišnih troškova za izabrani period.</p>
+                        <p class="p-5 text-sm italic">Nema skladišnih troškova za izabrani mesec.</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full min-w-[430px] text-sm">
@@ -65,7 +65,7 @@
                         <span class="whitespace-nowrap text-sm font-bold">{{ number_format($ukupniTrosakResursa, 2, ',', '.') }} RSD</span>
                     </div>
                     @if ($listaResursa->isEmpty())
-                        <p class="p-5 text-sm italic">Nema troškova resursa za izabrani period.</p>
+                        <p class="p-5 text-sm italic">Nema troškova resursa za izabrani mesec.</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full min-w-[480px] text-sm">
