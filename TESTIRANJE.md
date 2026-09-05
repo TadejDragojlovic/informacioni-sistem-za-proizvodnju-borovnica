@@ -27,3 +27,14 @@ docker compose exec -e DB_CONNECTION=mysql -e DB_HOST=mysql -e DB_PORT=3306 -e D
 `migrate:fresh` iznad briše samo bazu `borovnice_test`. Test odbija izvršavanje nad bazom čiji se naziv ne završava sa `_test`; nemoj paralelno pokretati više njegovih lokalnih instanci nad istom bazom.
 
 U GitHub Actions-u standardni SQLite testovi rade pri svakom pushu na bilo koju granu, dok se MySQL konkurentni test pokreće samo za pull request ili direktan push na `main`.
+
+## Smoke test
+
+Posle `docker compose exec app php artisan migrate:fresh --seed` dovoljno je kratko proveriti sledeće:
+
+1. Otvori početnu stranicu na desktop i mobilnoj širini i proveri proizvode i meni.
+2. Prijavi se kao kupac, dodaj proizvod u korpu i potvrdi narudžbinu.
+3. Prijavi se kao zaposleni, rezerviši narudžbinu FIFO postupkom i otpremi je.
+4. Otvori detalje lota i proveri statuse, količine, resurse i istoriju događaja.
+5. Prijavi se kao administrator i generiši finansijski izveštaj za jul 2026.
+6. Proveri da kupac i zaposleni nemaju pristup administratorskim finansijama.

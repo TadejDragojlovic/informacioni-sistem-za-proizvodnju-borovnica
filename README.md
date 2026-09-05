@@ -1,50 +1,72 @@
-# Informacioni sistem "Proizvodnja Borovnica"
-Ovaj sistem omogućava upravljanje zalihama, resursima i prodajom borovnica uz automatizovano generisanje finansijskih izveštaja.
+# Informacioni sistem za proizvodnju i sledljivost borovnica
 
-# Uputstvo za instalaciju
-Pratite ove korake kako biste pokrenuli projekat lokalno:
+Laravel aplikacija razvijena za diplomski rad. Sistem povezuje proizvodnju, skladištenje, sledljivost lotova, prodaju i finansijski pregled.
 
-1. Kloniranje projekta
-``` sh
-git clone https://github.com/tvoj-username/proizvodnja-borovnica-USI.git
-cd proizvodnja-borovnica-USI
+## Glavne funkcionalnosti
+
+- evidencija sorti, parcela, proizvoda, skladišta i skladišnih lokacija;
+- praćenje lota od berbe do izdavanja ili povlačenja;
+- evidencija kvaliteta, promena količine i korišćenih resursa;
+- korpa i narudžbine kupaca;
+- FIFO rezervacija raspoloživih lotova;
+- otprema i otkazivanje narudžbina;
+- mesečni finansijski izveštaj prema stvarnom vremenu otpreme;
+- pristup funkcionalnostima prema ulozi korisnika.
+
+## Tehnologije
+
+- PHP 8.3 i Laravel 12;
+- MySQL 8.4;
+- Blade, Tailwind CSS, Alpine.js i Vite;
+- PHPUnit;
+- Docker Compose.
+
+## Pokretanje pomoću Dockera
+
+Potrebni su Git i pokrenut Docker Desktop.
+
+```powershell
+git clone https://github.com/TadejDragojlovic/informacioni-sistem-za-proizvodnju-borovnica.git
+cd informacioni-sistem-za-proizvodnju-borovnica
+docker compose up -d --build
 ```
 
-2. Instalacija zavisnosti \
-Instalirajte PHP i JavaScript pakete:
-``` sh
-composer install
-npm install
-```
-<br>
+Pri prvom pokretanju kontejneri instaliraju PHP i JavaScript zavisnosti. Sačekaj da se aplikacioni kontejner pokrene, a zatim pripremi bazu:
 
-3. Podešavanje okruženja \
-Kreirajte .env fajl i generišite ključ aplikacije:
-``` sh
-cp .env.example .env
-php artisan key:generate
+```powershell
+docker compose exec app php artisan migrate --seed
 ```
-<br>
 
-4. Migracije i Baza podataka \
-Pokrenite migracije sa početnim podacima (seed):
-``` sh
-# Pokretanje migracija
-php artisan migrate --seed
-```
-<br>
+Aplikacija je dostupna na [http://localhost:8000](http://localhost:8000), a phpMyAdmin na [http://localhost:8080](http://localhost:8080). Za phpMyAdmin koristi server `mysql`, korisnika `borovnice` i lozinku `borovnice`.
 
-5. Kompajliranje i pokretanje \
-Pokrenite Vite (za CSS/JS) i lokalni server:
-``` sh
-npm run build
-php artisan serve
-```
-<br>
+Kontejnere možeš zaustaviti bez brisanja podataka:
 
-6. Testiranje sistema \
-Da biste se uverili da sve radi ispravno (uključujući finansijsku logiku i bezbednost), pokrenite testove:
-``` sh
-php artisan test
+```powershell
+docker compose down
 ```
-<br>
+
+Za potpuno ponovno kreiranje razvojne baze koristi sledeću komandu samo kada postojeći podaci nisu potrebni:
+
+```powershell
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+## Demo nalozi
+
+| Uloga | Email | Lozinka |
+|---|---|---|
+| Administrator | `admin@borovnica.com` | `admin` |
+| Zaposleni | `zaposleni@borovnica.com` | `zaposleni` |
+| Kupac | `kupac@borovnica.com` | `kupac` |
+
+Svi demo nalozi i pripremljeni podaci opisani su u [dokumentaciji seedera](database/seeders/README.md).
+
+## Provera projekta
+
+```powershell
+docker compose exec app php artisan test --exclude-group=mysql-concurrency
+docker compose exec app ./vendor/bin/pint --test
+docker compose exec node npm run build
+```
+
+Konkurentni MySQL test i smoke-test koraci opisani su u [TESTIRANJE.md](TESTIRANJE.md). Uloge i glavni poslovni tokovi opisani su u [docs/FUNKCIONALNOSTI.md](docs/FUNKCIONALNOSTI.md).
